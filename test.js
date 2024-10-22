@@ -67,7 +67,9 @@ test('require.addon', async (t) => {
     })
     .write('file:///prebuilds/host/foo.bare', '<native code>', {
       addon: true,
-      imports: {}
+      imports: {
+        '#package': 'file:///package.json'
+      }
     })
     .write('file:///foo.js', 'const bar = require.addon(\'.\')', {
       main: true,

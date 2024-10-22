@@ -1,50 +1,36 @@
 const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 
-module.exports = async function pack (entry, opts, readModule) {
+module.exports = async function pack (entry, opts, readModule, listPrefix) {
   if (typeof opts === 'function') {
     readModule = opts
     opts = {}
   }
 
-  const files = new Map()
-
-  readModule = collectModules(files, readModule)
-
   const bundle = new Bundle()
 
-  const addons = new Set()
-  const assets = new Set()
+  const generator = traverse.module(entry, await readModule(entry), { addons: [], assets: [] }, new Set(), opts)
 
-  for await (const { url, imports } of traverse(entry, opts, readModule)) {
-    bundle.write(url.href, files.get(url.href), { main: url.href === entry.href, imports })
+  let next = generator.next()
 
-    for (const resolved of Object.values(imports)) {
-      if (typeof resolved === 'object' && resolved !== null) {
-        if ('addon' in resolved) addons.add(resolved.addon)
-        if ('asset' in resolved) assets.add(resolved.asset)
-      }
+  while (next.done !== true) {
+    const value = next.value
+
+    if (value.module) {
+      next = generator.next(await readModule(value.module))
+    } else if (value.prefix) {
+      next = generator.next(await listPrefix(value.prefix))
+    } else {
+      next = generator.next()
+
+      const { url, source, imports } = value.dependency
+
+      bundle.write(url.href, source, { main: url.href === entry.href, imports })
     }
   }
 
-  bundle.addons = [...addons]
-  bundle.assets = [...assets]
+  bundle.addons = next.value.addons.map((url) => url.href)
+  bundle.assets = next.value.assets.map((url) => url.href)
 
   return bundle
-}
-
-function collectModules (files, readModule) {
-  return async function (url) {
-    if (files.has(url.href)) return files.get(url.href)
-
-    let contents = await readModule(url)
-
-    if (contents) {
-      if (typeof contents === 'string') contents = Buffer.from(contents)
-
-      files.set(url.href, contents)
-    }
-
-    return contents
-  }
 }
