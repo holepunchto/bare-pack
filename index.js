@@ -3,8 +3,13 @@ const traverse = require('bare-module-traverse')
 
 module.exports = async function pack (entry, opts, readModule, listPrefix) {
   if (typeof opts === 'function') {
+    listPrefix = readModule
     readModule = opts
     opts = {}
+  }
+
+  if (typeof listPrefix !== 'function') {
+    listPrefix = defaultListPrefix
   }
 
   const bundle = new Bundle()
@@ -33,4 +38,8 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   bundle.assets = next.value.assets.map((url) => url.href)
 
   return bundle
+}
+
+function defaultListPrefix () {
+  return []
 }
