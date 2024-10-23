@@ -1,3 +1,4 @@
+const Semaphore = require('promaphore')
 const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 
@@ -12,15 +13,28 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
     listPrefix = defaultListPrefix
   }
 
+  const {
+    concurrency = 1
+  } = opts
+
+  const semaphore = new Semaphore(concurrency)
+
   const bundle = new Bundle()
 
   const addons = []
   const assets = []
 
-  const queue = [traverse.module(entry, await readModule(entry), { addons, assets }, new Set(), opts)]
+  await process(traverse.module(entry, await readModule(entry), { addons, assets }, new Set(), opts))
 
-  while (queue.length > 0) {
-    const generator = queue.pop()
+  bundle.addons = addons.map((url) => url.href)
+  bundle.assets = assets.map((url) => url.href)
+
+  return bundle
+
+  async function process (generator) {
+    await semaphore.wait()
+
+    const queue = []
 
     let next = generator.next()
 
@@ -43,12 +57,11 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
         next = generator.next()
       }
     }
+
+    semaphore.signal()
+
+    await Promise.all(queue.map(process))
   }
-
-  bundle.addons = addons.map((url) => url.href)
-  bundle.assets = assets.map((url) => url.href)
-
-  return bundle
 }
 
 function defaultListPrefix () {

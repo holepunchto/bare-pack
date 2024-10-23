@@ -24,19 +24,19 @@ test('require', async (t) => {
   const bundle = await pack(new URL('file:///foo.js'), readModule)
 
   const expected = new Bundle()
-    .write('file:///baz.js', 'module.exports = 42', {
-      imports: {}
+    .write('file:///foo.js', 'const bar = require(\'./bar.js\')', {
+      main: true,
+      imports: {
+        './bar.js': 'file:///bar.js'
+      }
     })
     .write('file:///bar.js', 'const baz = require(\'./baz.js\')', {
       imports: {
         './baz.js': 'file:///baz.js'
       }
     })
-    .write('file:///foo.js', 'const bar = require(\'./bar.js\')', {
-      main: true,
-      imports: {
-        './bar.js': 'file:///bar.js'
-      }
+    .write('file:///baz.js', 'module.exports = 42', {
+      imports: {}
     })
 
   t.alike(bundle, expected)
@@ -62,15 +62,6 @@ test('require.addon', async (t) => {
   const bundle = await pack(new URL('file:///foo.js'), { host, extensions: ['.bare'] }, readModule)
 
   const expected = new Bundle()
-    .write('file:///package.json', '{ "name": "foo" }', {
-      imports: {}
-    })
-    .write('file:///prebuilds/host/foo.bare', '<native code>', {
-      addon: true,
-      imports: {
-        '#package': 'file:///package.json'
-      }
-    })
     .write('file:///foo.js', 'const bar = require.addon(\'.\')', {
       main: true,
       imports: {
@@ -79,6 +70,15 @@ test('require.addon', async (t) => {
           addon: 'file:///prebuilds/host/foo.bare'
         }
       }
+    })
+    .write('file:///prebuilds/host/foo.bare', '<native code>', {
+      addon: true,
+      imports: {
+        '#package': 'file:///package.json'
+      }
+    })
+    .write('file:///package.json', '{ "name": "foo" }', {
+      imports: {}
     })
 
   t.alike(bundle, expected)
@@ -100,10 +100,6 @@ test('require.asset', async (t) => {
   const bundle = await pack(new URL('file:///foo.js'), readModule)
 
   const expected = new Bundle()
-    .write('file:///bar.txt', 'hello world', {
-      asset: true,
-      imports: {}
-    })
     .write('file:///foo.js', 'const bar = require.asset(\'./bar.txt\')', {
       main: true,
       imports: {
@@ -111,6 +107,10 @@ test('require.asset', async (t) => {
           asset: 'file:///bar.txt'
         }
       }
+    })
+    .write('file:///bar.txt', 'hello world', {
+      asset: true,
+      imports: {}
     })
 
   t.alike(bundle, expected)
