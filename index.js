@@ -17,7 +17,7 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
     concurrency = 1
   } = opts
 
-  const semaphore = new Semaphore(concurrency)
+  const semaphore = concurrency > 0 ? new Semaphore(concurrency) : null
 
   const bundle = new Bundle()
 
@@ -32,7 +32,7 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   return bundle
 
   async function process (generator) {
-    await semaphore.wait()
+    if (semaphore !== null) await semaphore.wait()
 
     const queue = []
 
@@ -58,7 +58,7 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
       }
     }
 
-    semaphore.signal()
+    if (semaphore !== null) semaphore.signal()
 
     await Promise.all(queue.map(process))
   }
