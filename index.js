@@ -14,28 +14,39 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
 
   const bundle = new Bundle()
 
-  const generator = traverse.module(entry, await readModule(entry), { addons: [], assets: [] }, new Set(), opts)
+  const addons = []
+  const assets = []
 
-  let next = generator.next()
+  const queue = [traverse.module(entry, await readModule(entry), { addons, assets }, new Set(), opts)]
 
-  while (next.done !== true) {
-    const value = next.value
+  while (queue.length > 0) {
+    const generator = queue.pop()
 
-    if (value.module) {
-      next = generator.next(await readModule(value.module))
-    } else if (value.prefix) {
-      next = generator.next(await listPrefix(value.prefix))
-    } else {
-      next = generator.next()
+    let next = generator.next()
 
-      const { url, source, imports } = value.dependency
+    while (next.done !== true) {
+      const value = next.value
 
-      bundle.write(url.href, source, { main: url.href === entry.href, imports })
+      if (value.module) {
+        next = generator.next(await readModule(value.module))
+      } else if (value.prefix) {
+        next = generator.next(await listPrefix(value.prefix))
+      } else {
+        if (value.children) {
+          queue.push(value.children)
+        } else {
+          const { url, source, imports } = value.dependency
+
+          bundle.write(url.href, source, { main: url.href === entry.href, imports })
+        }
+
+        next = generator.next()
+      }
     }
   }
 
-  bundle.addons = next.value.addons.map((url) => url.href)
-  bundle.assets = next.value.assets.map((url) => url.href)
+  bundle.addons = addons.map((url) => url.href)
+  bundle.assets = assets.map((url) => url.href)
 
   return bundle
 }
