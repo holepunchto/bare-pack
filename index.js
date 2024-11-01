@@ -44,7 +44,13 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
       if (value.module) {
         next = generator.next(await readModule(value.module))
       } else if (value.prefix) {
-        next = generator.next(await listPrefix(value.prefix))
+        const result = []
+
+        for await (const url of listPrefix(value.prefix)) {
+          result.push(url)
+        }
+
+        next = generator.next(result)
       } else {
         if (value.children) {
           queue.push(value.children)

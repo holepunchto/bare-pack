@@ -1,14 +1,29 @@
 {
   "name": "bare-pack",
   "version": "1.0.0",
-  "description": "Low-level bundle packing for Bare",
+  "description": "Bundle packing for Bare",
   "exports": {
     ".": "./index.js",
     "./package": "./package.json"
   },
+  "bin": {
+    "bare-pack": "bin.js"
+  },
   "files": [
-    "index.js"
+    "index.js",
+    "fs.js",
+    "bin.js"
   ],
+  "imports": {
+    "fs": {
+      "bare": "bare-fs",
+      "default": "fs"
+    },
+    "url": {
+      "bare": "bare-url",
+      "default": "url"
+    }
+  },
   "scripts": {
     "test": "standard && bare test.js"
   },
@@ -23,8 +38,11 @@
   },
   "homepage": "https://github.com/holepunchto/bare-pack#readme",
   "dependencies": {
-    "bare-bundle": "^1.6.1",
-    "bare-module-traverse": "^1.0.0",
+    "bare-bundle": "^1.8.0",
+    "bare-fs": "^3.1.1",
+    "bare-module-traverse": "^1.2.0",
+    "bare-url": "^2.0.5",
+    "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
   },
   "devDependencies": {
