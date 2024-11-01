@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { pathToFileURL, fileURLToPath } = require('url')
+const { pathToFileURL } = require('url')
 const { command, flag, arg, summary } = require('paparam')
 const { resolve } = require('bare-module-traverse')
 const pkg = require('./package')
