@@ -9,6 +9,14 @@ exports.write = async function write (fd, data) {
   })
 }
 
+exports.writeFile = async function writeFile (url, data) {
+  return new Promise((resolve) => {
+    fs.writeFile(fileURLToPath(url), data, (err) => {
+      resolve(!err)
+    })
+  })
+}
+
 exports.readFile = async function readFile (url) {
   return new Promise((resolve) => {
     fs.readFile(fileURLToPath(url), (err, data) => {
