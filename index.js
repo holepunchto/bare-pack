@@ -70,6 +70,5 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   }
 }
 
-function defaultListPrefix () {
-  return []
+function * defaultListPrefix () {
 }
