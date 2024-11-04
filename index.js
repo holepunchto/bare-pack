@@ -14,7 +14,7 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   }
 
   const {
-    concurrency = 0
+    concurrency = 1
   } = opts
 
   const semaphore = concurrency > 0 ? new Semaphore(concurrency) : null
