@@ -19,7 +19,7 @@ const cmd = command(
 
     const resolve = require(require.resolve(resolver, { paths: [path.resolve('.'), __dirname] }))
 
-    const bundle = await pack(pathToFileURL(entry), { resolve }, readModule, listPrefix)
+    const bundle = await pack(pathToFileURL(entry), { resolve }, fs.readModule, fs.listPrefix)
 
     const buffer = bundle.unmount(pathToFileURL(base)).toBuffer()
 
@@ -32,19 +32,3 @@ const cmd = command(
 )
 
 cmd.parse()
-
-async function readModule (url) {
-  return fs.readFile(url)
-}
-
-async function * listPrefix (url) {
-  if (url.pathname[url.pathname.length - 1] !== '/') url.pathname += '/'
-
-  for await (const entry of await fs.openDir(url)) {
-    if (entry.isDirectory()) {
-      yield * listPrefix(new URL(entry.name, url))
-    } else {
-      yield new URL(entry.name, url)
-    }
-  }
-}

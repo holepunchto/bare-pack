@@ -32,3 +32,19 @@ exports.openDir = async function openDir (url) {
     })
   })
 }
+
+exports.readModule = async function readModule (url) {
+  return exports.readFile(url)
+}
+
+exports.listPrefix = async function * listPrefix (url) {
+  if (url.pathname[url.pathname.length - 1] !== '/') url.pathname += '/'
+
+  for await (const entry of await exports.openDir(url)) {
+    if (entry.isDirectory()) {
+      yield * listPrefix(new URL(entry.name, url))
+    } else {
+      yield new URL(entry.name, url)
+    }
+  }
+}

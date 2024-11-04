@@ -4,7 +4,8 @@
   "description": "Bundle packing for Bare",
   "exports": {
     ".": "./index.js",
-    "./package": "./package.json"
+    "./package": "./package.json",
+    "./fs": "./fs.js"
   },
   "bin": {
     "bare-pack": "bin.js"
