@@ -16,7 +16,10 @@
     "bin.js"
   ],
   "scripts": {
-    "test": "standard && bare test.js"
+    "test": "npm run lint && npm run test:bare && npm run test:node",
+    "test:bare": "bare test.js",
+    "test:node": "node test.js",
+    "lint": "standard"
   },
   "repository": {
     "type": "git",
