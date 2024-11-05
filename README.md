@@ -81,12 +81,12 @@ bare-pack --linked index.js
 ```
 
 `index.js`
-```
+```js
 const addon = require.addon()
 ```
 
 `package.json`
-```
+```json
 {
   "name": "addon",
   "version": "1.0.0",
@@ -112,7 +112,7 @@ const addon = require('addon')
 ```
 
 `package.json`
-```js
+```json
 {
   "name": "builtin",
   "version": "1.0.0",
