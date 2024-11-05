@@ -1,1 +1,1 @@
-const addon = require('addon')
+module.exports = require('addon')
