@@ -1,0 +1,9 @@
+{
+  "name": "addon",
+  "version": "1.0.0",
+  "addon": true,
+  "devDependencies": {
+    "cmake-bare": "^1.1.15",
+    "cmake-napi": "^1.0.6"
+  }
+}

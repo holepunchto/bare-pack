@@ -1,0 +1,7 @@
+{
+  "name": "builtin",
+  "version": "1.0.0",
+  "dependencies": {
+    "addon": "file:../addon"
+  }
+}

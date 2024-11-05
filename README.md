@@ -1,9 +1,11 @@
 # bare-pack
 
-Bundle packing for Bare.
+Bundle packing for Bare. It traverses a module graph and constructs a <https://github.com/holepunchto/bare-bundle> bundle with all statically resolvable import specifiers preresolved and embeds addon and asset imports. Built on <https://github.com/holepunchto/bare-module-traverse>, it relies on modules being read and prefixes being listed by callbacks, making it independent of the underlying module storage.
+
+A [CLI](#cli) is also included and provides out-of-the box support for constructing bundles for use with <https://github.com/holepunchto/bare> on both desktop and mobile.
 
 ```
-npm i bare-pack
+npm i [-g] bare-pack
 ```
 
 ## Usage
@@ -37,6 +39,108 @@ Options include:
 ```
 
 Options supported by <https://github.com/holepunchto/bare-module-traverse> may also be specified.
+
+## CLI
+
+#### `bare-pack [flags] <entry>`
+
+Bundle the module graph rooted at `<entry>`. If `--out` is provided, the bundle will be written to the specified file. Otherwise, the bundle will be written to `stdout`.
+
+Flags include:
+
+```console
+--version|-v
+--out|-o <path>
+--builtins <path>
+--linked
+--platform|-p <name>
+--arch|-a <name>
+--simulator
+--help|-h
+```
+
+##### Target
+
+By default, the bundle will be created for the host platform and architecture. To instead create a bundle for a different target system, pass the `--platform`, `--arch`, and `--simulator` flags.
+
+```console
+bare-pack --platform <darwin|ios|linux|android|win32> --arch <arm|arm64|ia32|x64> [--simulator] index.js
+```
+
+`index.js`
+```js
+console.log(Bare.platform, Bare.arch, Bare.simulator)
+```
+
+##### Linking
+
+If your runtime environment dynamically links native addons ahead of time, pass the `--linked` flag to ensure that addons resolve to `linked:` specifiers instead of `file:` prebuilds. This will mostly always be necessary when targetting mobile as both iOS and Android require native code to be linked ahead of time rather than loaded at runtime from disk.
+
+```console
+bare-pack --linked index.js
+```
+
+`index.js`
+```
+const addon = require.addon()
+```
+
+`package.json`
+```
+{
+  "name": "addon",
+  "version": "1.0.0",
+  "addon": true
+}
+```
+
+`require.addon()` will then resolve to `linked:libaddon.1.0.0.dylib` on macOS, `linked:addon.1.0.0.framework/addon.1.0.0`, `linked:libaddon.1.0.0.so` on Linux and Android, and `linked:addon-1.0.0.dll` on Windows.
+
+See [`example/addon`](example/addon) for the full example.
+
+##### Builtins
+
+If your runtime environment includes builtin modules or statically embeds native addons, pass the `--builtins` flag and point it at a module exporting the list of builtins.
+
+```console
+bare-pack --builtins builtins.json index.js
+```
+
+`index.js`
+```js
+const addon = require('addon')
+```
+
+`package.json`
+```js
+{
+  "name": "builtin",
+  "version": "1.0.0",
+  "dependencies": {
+    "addon": "file:../addon"
+  }
+}
+```
+
+To treat both the `addon` JavaScript module and native addon as being provided by the runtime environment, do:
+
+`builtins.json`
+```json
+[
+  "addon"
+]
+```
+
+To instead bundle the `addon` JavaScript module and only treat the native addon as being provided by the runtime environment, do:
+
+`builtins.json`
+```json
+[
+  { "addon": "addon" }
+]
+```
+
+See [`example/builtin`](example/builtin) for the full example.
 
 ## License
 
