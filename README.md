@@ -157,7 +157,7 @@ Format | Extension(s) | Description
 `bundle.cjs` | `.bundle.js`, `.bundle.cjs` | CommonJS wrapper for a `.bundle`
 `bundle.mjs` | `.bundle.mjs` | ES module wrapper for a `.bundle`
 `bundle.json` | `.bundle.json` | JSON wrapper for a `.bundle`
-`bundle` | `.bundle`, `.*`' | Raw `.bundle`, may be binary
+`bundle` | `.bundle`, `.*` | Raw `.bundle`
 
 The default encoding is `utf8` for all text formats. Use `base64` or `hex` if combining a text format with native addons or binary assets.
 
