@@ -53,6 +53,8 @@ Flags include:
 --out|-o <path>
 --builtins <path>
 --linked
+--format|-f
+--encoding|-e
 --platform|-p <name>
 --arch|-a <name>
 --simulator
@@ -141,6 +143,23 @@ To instead bundle the `addon` JavaScript module and only treat the native addon 
 ```
 
 See [`example/builtin`](example/builtin) for the full example.
+
+##### Format
+
+The bundle format to use will be inferred from the `--out` flag if specified and can also be set directly using the `--format` and `--encoding` flags.
+
+```console
+bare-pack --format <bundle.cjs|bundle.mjs|bundle.json|bundle> --encoding <utf8|base64|ascii|hex|utf16le> index.js
+```
+
+Format | Extension(s) | Description
+--- : --- : ---
+`bundle.cjs` | `.bundle.js`, `.bundle.cjs` | CommonJS wrapper for a `.bundle`
+`bundle.mjs` | `.bundle.mjs` | ES module wrapper for a `.bundle`
+`bundle.json` | `.bundle.json` | JSON wrapper for a `.bundle`
+`bundle` | `.bundle`, `.*`' | Raw `.bundle`, may be binary
+
+The default encoding is `utf8` for all text formats. Use `base64` or `hex` if combining a text format with native addons or binary assets.
 
 ## License
 
