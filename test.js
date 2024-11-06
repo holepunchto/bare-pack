@@ -1,5 +1,6 @@
 const test = require('brittle')
 const Bundle = require('bare-bundle')
+const id = require('bare-bundle-id')
 const pack = require('.')
 
 const host = 'host'
@@ -38,6 +39,8 @@ test('require', async (t) => {
     .write('file:///baz.js', 'module.exports = 42', {
       imports: {}
     })
+
+  expected.id = id(expected).toString('hex')
 
   t.alike(bundle, expected)
 })
@@ -81,6 +84,8 @@ test('require.addon', async (t) => {
       imports: {}
     })
 
+  expected.id = id(expected).toString('hex')
+
   t.alike(bundle, expected)
 })
 
@@ -112,6 +117,8 @@ test('require.asset', async (t) => {
       asset: true,
       imports: {}
     })
+
+  expected.id = id(expected).toString('hex')
 
   t.alike(bundle, expected)
 })
