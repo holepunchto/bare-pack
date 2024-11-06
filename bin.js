@@ -50,6 +50,8 @@ const cmd = command(
     let data = bundle.toBuffer()
 
     switch (format) {
+      case 'bundle':
+        break
       case 'bundle.cjs':
         data = `module.exports = ${JSON.stringify(data.toString(encoding))}\n`
         break
