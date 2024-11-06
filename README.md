@@ -153,7 +153,7 @@ bare-pack --format <bundle.cjs|bundle.mjs|bundle.json|bundle> --encoding <utf8|b
 ```
 
 Format | Extension(s) | Description
---- : --- : ---
+--- | --- | ---
 `bundle.cjs` | `.bundle.js`, `.bundle.cjs` | CommonJS wrapper for a `.bundle`
 `bundle.mjs` | `.bundle.mjs` | ES module wrapper for a `.bundle`
 `bundle.json` | `.bundle.json` | JSON wrapper for a `.bundle`
