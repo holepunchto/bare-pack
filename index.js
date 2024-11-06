@@ -27,10 +27,10 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
 
   await process(traverse.module(entry, await readModule(entry), { addons, assets }, new Set(), opts))
 
-  bundle.id = id(bundle).toString('hex')
-
   bundle.addons = addons.map((url) => url.href)
   bundle.assets = assets.map((url) => url.href)
+
+  bundle.id = id(bundle).toString('hex')
 
   return bundle
 
