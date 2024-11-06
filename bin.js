@@ -3,6 +3,7 @@ const path = require('path')
 const { pathToFileURL } = require('url')
 const { command, flag, arg, summary } = require('paparam')
 const { resolve } = require('bare-module-traverse')
+const id = require('bare-bundle-id')
 const pkg = require('./package')
 const fs = require('./fs')
 const pack = require('.')
@@ -46,6 +47,8 @@ const cmd = command(
     }, fs.readModule, fs.listPrefix)
 
     bundle = bundle.unmount(pathToFileURL('.'))
+
+    bundle.id = id(bundle).toString('hex')
 
     let data = bundle.toBuffer()
 

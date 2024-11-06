@@ -1,6 +1,5 @@
 const Semaphore = require('promaphore')
 const Bundle = require('bare-bundle')
-const id = require('bare-bundle-id')
 const traverse = require('bare-module-traverse')
 
 module.exports = async function pack (entry, opts, readModule, listPrefix) {
@@ -29,8 +28,6 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
 
   bundle.addons = addons.map((url) => url.href)
   bundle.assets = assets.map((url) => url.href)
-
-  bundle.id = id(bundle).toString('hex')
 
   return bundle
 
