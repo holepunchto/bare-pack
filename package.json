@@ -5,15 +5,15 @@
   "exports": {
     ".": "./index.js",
     "./package": "./package.json",
-    "./fs": "./fs.js"
+    "./fs": "./lib/fs.js"
   },
   "bin": {
     "bare-pack": "bin.js"
   },
   "files": [
     "index.js",
-    "fs.js",
-    "bin.js"
+    "bin.js",
+    "lib"
   ],
   "scripts": {
     "test": "npm run lint && npm run test:bare && npm run test:node",

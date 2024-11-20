@@ -5,7 +5,7 @@ const { command, flag, arg, summary } = require('paparam')
 const { resolve } = require('bare-module-traverse')
 const id = require('bare-bundle-id')
 const pkg = require('./package')
-const fs = require('./fs')
+const fs = require('./lib/fs')
 const pack = require('.')
 
 const cmd = command(
