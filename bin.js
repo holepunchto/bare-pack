@@ -69,7 +69,10 @@ const cmd = command(
     }
 
     if (out) {
-      await fs.writeFile(pathToFileURL(out), data)
+      const url = pathToFileURL(out)
+
+      await fs.makeDir(new URL('.', url))
+      await fs.writeFile(url, data)
     } else {
       await fs.write(1, data)
     }
