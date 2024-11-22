@@ -2,7 +2,7 @@ const Semaphore = require('promaphore')
 const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 
-module.exports = async function pack (entry, opts, readModule, listPrefix) {
+module.exports = async function pack(entry, opts, readModule, listPrefix) {
   if (typeof opts === 'function') {
     listPrefix = readModule
     readModule = opts
@@ -13,9 +13,7 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
     listPrefix = defaultListPrefix
   }
 
-  const {
-    concurrency = 1
-  } = opts
+  const { concurrency = 1 } = opts
 
   const semaphore = concurrency > 0 ? new Semaphore(concurrency) : null
 
@@ -24,14 +22,22 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   const addons = []
   const assets = []
 
-  await process(traverse.module(entry, await readModule(entry), { addons, assets }, new Set(), opts))
+  await process(
+    traverse.module(
+      entry,
+      await readModule(entry),
+      { addons, assets },
+      new Set(),
+      opts
+    )
+  )
 
   bundle.addons = addons.map((url) => url.href)
   bundle.assets = assets.map((url) => url.href)
 
   return bundle
 
-  async function process (generator) {
+  async function process(generator) {
     if (semaphore !== null) await semaphore.wait()
 
     const queue = []
@@ -57,7 +63,10 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
         } else {
           const { url, source, imports } = value.dependency
 
-          bundle.write(url.href, source, { main: url.href === entry.href, imports })
+          bundle.write(url.href, source, {
+            main: url.href === entry.href,
+            imports
+          })
         }
 
         next = generator.next()
@@ -70,4 +79,4 @@ module.exports = async function pack (entry, opts, readModule, listPrefix) {
   }
 }
 
-function * defaultListPrefix () {}
+function* defaultListPrefix() {}

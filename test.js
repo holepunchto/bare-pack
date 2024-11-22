@@ -5,13 +5,13 @@ const pack = require('.')
 const host = 'host'
 
 test('require', async (t) => {
-  function readModule (url) {
+  function readModule(url) {
     if (url.href === 'file:///foo.js') {
-      return 'const bar = require(\'./bar.js\')'
+      return "const bar = require('./bar.js')"
     }
 
     if (url.href === 'file:///bar.js') {
-      return 'const baz = require(\'./baz.js\')'
+      return "const baz = require('./baz.js')"
     }
 
     if (url.href === 'file:///baz.js') {
@@ -24,13 +24,13 @@ test('require', async (t) => {
   const bundle = await pack(new URL('file:///foo.js'), readModule)
 
   const expected = new Bundle()
-    .write('file:///foo.js', 'const bar = require(\'./bar.js\')', {
+    .write('file:///foo.js', "const bar = require('./bar.js')", {
       main: true,
       imports: {
         './bar.js': 'file:///bar.js'
       }
     })
-    .write('file:///bar.js', 'const baz = require(\'./baz.js\')', {
+    .write('file:///bar.js', "const baz = require('./baz.js')", {
       imports: {
         './baz.js': 'file:///baz.js'
       }
@@ -43,9 +43,9 @@ test('require', async (t) => {
 })
 
 test('require.addon', async (t) => {
-  function readModule (url) {
+  function readModule(url) {
     if (url.href === 'file:///foo.js') {
-      return 'const bar = require.addon(\'.\')'
+      return "const bar = require.addon('.')"
     }
 
     if (url.href === 'file:///package.json') {
@@ -59,10 +59,14 @@ test('require.addon', async (t) => {
     return null
   }
 
-  const bundle = await pack(new URL('file:///foo.js'), { host, extensions: ['.bare'] }, readModule)
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { host, extensions: ['.bare'] },
+    readModule
+  )
 
   const expected = new Bundle()
-    .write('file:///foo.js', 'const bar = require.addon(\'.\')', {
+    .write('file:///foo.js', "const bar = require.addon('.')", {
       main: true,
       imports: {
         '#package': 'file:///package.json',
@@ -85,9 +89,9 @@ test('require.addon', async (t) => {
 })
 
 test('require.asset', async (t) => {
-  function readModule (url) {
+  function readModule(url) {
     if (url.href === 'file:///foo.js') {
-      return 'const bar = require.asset(\'./bar.txt\')'
+      return "const bar = require.asset('./bar.txt')"
     }
 
     if (url.href === 'file:///bar.txt') {
@@ -100,7 +104,7 @@ test('require.asset', async (t) => {
   const bundle = await pack(new URL('file:///foo.js'), readModule)
 
   const expected = new Bundle()
-    .write('file:///foo.js', 'const bar = require.asset(\'./bar.txt\')', {
+    .write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
       main: true,
       imports: {
         './bar.txt': {

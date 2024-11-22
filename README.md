@@ -13,15 +13,19 @@ npm i [-g] bare-pack
 ```js
 const pack = require('bare-pack')
 
-async function readModule (url) {
+async function readModule(url) {
   // Read `url` if it exists, otherwise `null`
 }
 
-async function * listPrefix (url) {
+async function* listPrefix(url) {
   // Yield URLs that have `url` as a prefix. The list may be empty.
 }
 
-const bundle = await pack(new URL('file:///directory/file.js'), readModule, listPrefix)
+const bundle = await pack(
+  new URL('file:///directory/file.js'),
+  readModule,
+  listPrefix
+)
 ```
 
 ## API
@@ -70,6 +74,7 @@ bare-pack --platform <darwin|ios|linux|android|win32> --arch <arm|arm64|ia32|x64
 ```
 
 `index.js`
+
 ```js
 console.log(Bare.platform, Bare.arch, Bare.simulator)
 ```
@@ -83,11 +88,13 @@ bare-pack --linked index.js
 ```
 
 `index.js`
+
 ```js
 const addon = require.addon()
 ```
 
 `package.json`
+
 ```json
 {
   "name": "addon",
@@ -109,11 +116,13 @@ bare-pack --builtins builtins.json index.js
 ```
 
 `index.js`
+
 ```js
 const addon = require('addon')
 ```
 
 `package.json`
+
 ```json
 {
   "name": "builtin",
@@ -127,19 +136,17 @@ const addon = require('addon')
 To treat both the `addon` JavaScript module and native addon as being provided by the runtime environment, do:
 
 `builtins.json`
+
 ```json
-[
-  "addon"
-]
+["addon"]
 ```
 
 To instead bundle the `addon` JavaScript module and only treat the native addon as being provided by the runtime environment, do:
 
 `builtins.json`
+
 ```json
-[
-  { "addon": "addon" }
-]
+[{ "addon": "addon" }]
 ```
 
 See [`example/builtin`](example/builtin) for the full example.
@@ -152,12 +159,12 @@ The bundle format to use will be inferred from the `--out` flag if specified and
 bare-pack --format <bundle.cjs|bundle.mjs|bundle.json|bundle> --encoding <utf8|base64|ascii|hex|utf16le> index.js
 ```
 
-Format | Extension(s) | Description
---- | --- | ---
-`bundle.cjs` | `.bundle.js`, `.bundle.cjs` | CommonJS wrapper for a `.bundle`
-`bundle.mjs` | `.bundle.mjs` | ES module wrapper for a `.bundle`
-`bundle.json` | `.bundle.json` | JSON wrapper for a `.bundle`
-`bundle` | `.bundle`, `.*` | Raw `.bundle`
+| Format        | Extension(s)                | Description                       |
+| ------------- | --------------------------- | --------------------------------- |
+| `bundle.cjs`  | `.bundle.js`, `.bundle.cjs` | CommonJS wrapper for a `.bundle`  |
+| `bundle.mjs`  | `.bundle.mjs`               | ES module wrapper for a `.bundle` |
+| `bundle.json` | `.bundle.json`              | JSON wrapper for a `.bundle`      |
+| `bundle`      | `.bundle`, `.*`             | Raw `.bundle`                     |
 
 The default encoding is `utf8` for all text formats. Use `base64` or `hex` if combining a text format with native addons or binary assets.
 

@@ -37,14 +37,19 @@ const cmd = command(
 
     if (version) return console.log(`v${pkg.version}`)
 
-    let bundle = await pack(pathToFileURL(entry), {
-      platform,
-      arch,
-      simulator,
-      resolve: resolve.bare,
-      builtins: builtins ? require(path.resolve(builtins)) : [],
-      linked
-    }, fs.readModule, fs.listPrefix)
+    let bundle = await pack(
+      pathToFileURL(entry),
+      {
+        platform,
+        arch,
+        simulator,
+        resolve: resolve.bare,
+        builtins: builtins ? require(path.resolve(builtins)) : [],
+        linked
+      },
+      fs.readModule,
+      fs.listPrefix
+    )
 
     bundle = bundle.unmount(pathToFileURL('.'))
 
@@ -81,9 +86,10 @@ const cmd = command(
 
 cmd.parse()
 
-function defaultFormat (out) {
+function defaultFormat(out) {
   if (typeof out !== 'string') return 'bundle'
-  if (out.endsWith('.bundle.js') || out.endsWith('.bundle.cjs')) return 'bundle.cjs'
+  if (out.endsWith('.bundle.js') || out.endsWith('.bundle.cjs'))
+    return 'bundle.cjs'
   if (out.endsWith('.bundle.mjs')) return 'bundle.mjs'
   if (out.endsWith('.bundle.json')) return 'bundle.json'
   return 'bundle'
