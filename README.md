@@ -54,6 +54,7 @@ Flags include:
 
 ```console
 --version|-v
+--base <path>
 --out|-o <path>
 --builtins <path>
 --linked

@@ -13,6 +13,7 @@ const cmd = command(
   summary(pkg.description),
   arg('<entry>', 'The entry point of the module graph'),
   flag('--version|-v', 'Print the current version'),
+  flag('--base <path>', 'The base path of the bundle'),
   flag('--out|-o <path>', 'The output path of the bundle'),
   flag('--builtins <path>', 'A list of builtin modules'),
   flag('--linked', 'Resolve linked: addons instead of file: prebuilds'),
@@ -26,6 +27,7 @@ const cmd = command(
     const { entry } = cmd.args
     const {
       version,
+      base = '.',
       out,
       builtins,
       linked,
@@ -54,7 +56,7 @@ const cmd = command(
       fs.listPrefix
     )
 
-    bundle = bundle.unmount(pathToFileURL('.'))
+    bundle = bundle.unmount(pathToFileURL(base))
 
     bundle.id = id(bundle).toString('hex')
 
