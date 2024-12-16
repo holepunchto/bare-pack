@@ -73,10 +73,10 @@ By default, the bundle will be created for the host platform and architecture. T
 bare-pack --platform <darwin|ios|linux|android|win32> --arch <arm|arm64|ia32|x64> [--simulator] index.js
 ```
 
-`index.js`
+Behind the scenes, the `--platform`, `--arch`, and `--simulator` flags are used to construct a single `--target` flag for the targeted system. To create a combined bundle for multiple target systems, pass several `--target` flags explicitly.
 
-```js
-console.log(Bare.platform, Bare.arch, Bare.simulator)
+```console
+bare-pack --target <platform>-<arch>[-simulator] --target ... index.js
 ```
 
 ##### Linking

@@ -34,7 +34,7 @@
   "dependencies": {
     "bare-bundle": "^1.8.0",
     "bare-bundle-id": "^1.0.0",
-    "bare-module-traverse": "^1.2.5",
+    "bare-module-traverse": "^1.3.0",
     "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
   },

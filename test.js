@@ -70,12 +70,67 @@ test('require.addon', async (t) => {
       main: true,
       imports: {
         '#package': 'file:///package.json',
-        '.': {
-          addon: 'file:///prebuilds/host/foo.bare'
-        }
+        '.': 'file:///prebuilds/host/foo.bare'
       }
     })
     .write('file:///prebuilds/host/foo.bare', '<native code>', {
+      addon: true,
+      imports: {
+        '#package': 'file:///package.json'
+      }
+    })
+    .write('file:///package.json', '{ "name": "foo" }', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('require.addon, hosts list', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "module.exports = require.addon('.')"
+    }
+
+    if (url.href === 'file:///package.json') {
+      return '{ "name": "foo" }'
+    }
+
+    if (url.href === 'file:///prebuilds/host-a/foo.bare') {
+      return '<native code a>'
+    }
+
+    if (url.href === 'file:///prebuilds/host-b/foo.bare') {
+      return '<native code b>'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { hosts: ['host-a', 'host-b'], extensions: ['.bare'] },
+    readModule
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "module.exports = require.addon('.')", {
+      main: true,
+      imports: {
+        '#package': 'file:///package.json',
+        '.': {
+          a: 'file:///prebuilds/host-a/foo.bare',
+          b: 'file:///prebuilds/host-b/foo.bare'
+        }
+      }
+    })
+    .write('file:///prebuilds/host-a/foo.bare', '<native code a>', {
+      addon: true,
+      imports: {
+        '#package': 'file:///package.json'
+      }
+    })
+    .write('file:///prebuilds/host-b/foo.bare', '<native code b>', {
       addon: true,
       imports: {
         '#package': 'file:///package.json'
@@ -107,9 +162,7 @@ test('require.asset', async (t) => {
     .write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
       main: true,
       imports: {
-        './bar.txt': {
-          asset: 'file:///bar.txt'
-        }
+        './bar.txt': 'file:///bar.txt'
       }
     })
     .write('file:///bar.txt', 'hello world', {
