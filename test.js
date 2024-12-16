@@ -70,9 +70,7 @@ test('require.addon', async (t) => {
       main: true,
       imports: {
         '#package': 'file:///package.json',
-        '.': {
-          addon: 'file:///prebuilds/host/foo.bare'
-        }
+        '.': 'file:///prebuilds/host/foo.bare'
       }
     })
     .write('file:///prebuilds/host/foo.bare', '<native code>', {
@@ -164,9 +162,7 @@ test('require.asset', async (t) => {
     .write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
       main: true,
       imports: {
-        './bar.txt': {
-          asset: 'file:///bar.txt'
-        }
+        './bar.txt': 'file:///bar.txt'
       }
     })
     .write('file:///bar.txt', 'hello world', {
