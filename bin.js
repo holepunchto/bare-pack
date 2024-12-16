@@ -21,6 +21,7 @@ const cmd = command(
   flag('--platform|-p <name>', 'The operating system platform to bundle for'),
   flag('--arch|-a <name>', 'The operating system architecture to bundle for'),
   flag('--simulator', 'Bundle for a simulator'),
+  flag('--target|-t <host>', 'The host to bundle for').multiple(),
   async (cmd) => {
     const { entry } = cmd.args
     const {
@@ -32,7 +33,8 @@ const cmd = command(
       encoding = 'utf8',
       platform,
       arch,
-      simulator
+      simulator,
+      target
     } = cmd.flags
 
     if (version) return console.log(`v${pkg.version}`)
@@ -43,6 +45,7 @@ const cmd = command(
         platform,
         arch,
         simulator,
+        target,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
         linked
