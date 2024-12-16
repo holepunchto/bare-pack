@@ -104,7 +104,7 @@ const addon = require.addon()
 }
 ```
 
-`require.addon()` will then resolve to `linked:libaddon.1.0.0.dylib` on macOS, `linked:addon.1.0.0.framework/addon.1.0.0` on iOS, `linked:libaddon.1.0.0.so` on Linux and Android, and `linked:addon-1.0.0.dll` on Windows.
+`require.addon()` will then resolve to `linked:addon.1.0.0.framework/addon.1.0.0` on macOS and iOS, `linked:libaddon.1.0.0.so` on Linux and Android, and `linked:addon-1.0.0.dll` on Windows.
 
 See [`example/addon`](example/addon) for the full example.
 
