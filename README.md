@@ -62,6 +62,7 @@ Flags include:
 --platform|-p <name>
 --arch|-a <name>
 --simulator
+--target|-t <host>
 --help|-h
 ```
 
