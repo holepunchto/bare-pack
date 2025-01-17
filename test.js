@@ -172,3 +172,49 @@ test('require.asset', async (t) => {
 
   t.alike(bundle, expected)
 })
+
+test('require.asset, directory', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.asset('./bar')"
+    }
+
+    if (url.href === 'file:///bar/a.txt') {
+      return 'hello a'
+    }
+
+    if (url.href === 'file:///bar/b.txt') {
+      return 'hello b'
+    }
+
+    return null
+  }
+
+  function listPrefix(url) {
+    if (url.href === 'file:///bar') {
+      return [new URL('file:///bar/a.txt'), new URL('file:///bar/b.txt')]
+    }
+
+    return []
+  }
+
+  const bundle = await pack(new URL('file:///foo.js'), readModule, listPrefix)
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "const bar = require.asset('./bar')", {
+      main: true,
+      imports: {
+        './bar': 'file:///bar'
+      }
+    })
+    .write('file:///bar/a.txt', 'hello a', {
+      asset: true,
+      imports: {}
+    })
+    .write('file:///bar/b.txt', 'hello b', {
+      asset: true,
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
