@@ -9,10 +9,6 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
     opts = {}
   }
 
-  if (typeof listPrefix !== 'function') {
-    listPrefix = defaultListPrefix
-  }
-
   const { concurrency = 1 } = opts
 
   const semaphore = concurrency > 0 ? new Semaphore(concurrency) : null
@@ -52,8 +48,14 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
       } else if (value.prefix) {
         const result = []
 
-        for await (const url of listPrefix(value.prefix)) {
-          result.push(url)
+        if (typeof listPrefix === 'function') {
+          for await (const url of listPrefix(value.prefix)) {
+            result.push(url)
+          }
+        } else {
+          if ((await readModule(value.prefix)) !== null) {
+            result.push(value.prefix)
+          }
         }
 
         next = generator.next(result)
@@ -78,5 +80,3 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
     await Promise.all(queue.map(process))
   }
 }
-
-function* defaultListPrefix() {}
