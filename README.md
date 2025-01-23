@@ -37,8 +37,8 @@ Bundle the module graph rooted at `url`, which must be a WHATWG `URL` instance. 
 Options include:
 
 ```js
-{
-  concurrency: 1
+options = {
+  concurrency: 0
 }
 ```
 
