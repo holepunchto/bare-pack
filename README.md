@@ -83,7 +83,7 @@ bare-pack --target <platform>-<arch>[-simulator] --target ... index.js
 
 ##### Linking
 
-If your runtime environment dynamically links native addons ahead of time, pass the `--linked` flag to ensure that addons resolve to `linked:` specifiers instead of `file:` prebuilds. This will mostly always be necessary when targeting mobile as both iOS and Android require native code to be linked ahead of time rather than loaded at runtime from disk.
+If your runtime environment dynamically links native addons ahead of time using <https://github.com/holepunchto/bare-link>, pass the `--linked` flag to ensure that addons resolve to `linked:` specifiers instead of `file:` prebuilds. This will mostly always be necessary when targeting mobile as both iOS and Android require native code to be linked ahead of time rather than loaded at runtime from disk.
 
 ```console
 bare-pack --linked index.js
