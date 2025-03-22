@@ -3,12 +3,14 @@
   "version": "1.2.4",
   "description": "Bundle packing for Bare",
   "exports": {
+    "./package": "./package.json",
     ".": {
       "types": "./index.d.ts",
       "default": "./index.js"
     },
     "./fs": "./lib/fs.js",
-    "./package": "./package.json"
+    "./preset": "./lib/preset.js",
+    "./preset/*": "./lib/preset/*.js"
   },
   "bin": {
     "bare-pack": "bin.js"

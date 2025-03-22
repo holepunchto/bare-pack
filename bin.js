@@ -23,6 +23,7 @@ const cmd = command(
   flag('--arch|-a <name>', 'The operating system architecture to bundle for'),
   flag('--simulator', 'Bundle for a simulator'),
   flag('--target|-t <host>', 'The host to bundle for').multiple(),
+  flag('--preset <name>', 'Apply an option preset'),
   async (cmd) => {
     const { entry } = cmd.args
     const {
@@ -36,7 +37,8 @@ const cmd = command(
       platform,
       arch,
       simulator,
-      target
+      target,
+      preset
     } = cmd.flags
 
     if (version) return console.log(`v${pkg.version}`)
@@ -50,7 +52,8 @@ const cmd = command(
         target,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
-        linked
+        linked,
+        preset
       },
       fs.readModule,
       fs.listPrefix

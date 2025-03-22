@@ -1,6 +1,7 @@
 const Semaphore = require('promaphore')
 const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
+const preset = require('./lib/preset')
 
 module.exports = async function pack(entry, opts, readModule, listPrefix) {
   if (typeof opts === 'function') {
@@ -8,6 +9,8 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
     readModule = opts
     opts = {}
   }
+
+  opts = withPreset(opts)
 
   const { concurrency = 0 } = opts
 
@@ -79,4 +82,16 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
 
     await Promise.all(queue.map(process))
   }
+}
+
+function withPreset(opts = {}) {
+  if (opts.preset) {
+    if (opts.preset in preset === false) {
+      throw new Error(`Unknown preset '${opts.preset}'`)
+    }
+
+    opts = Object.assign({}, opts, preset[opts.preset])
+  }
+
+  return opts
 }
