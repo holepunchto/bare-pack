@@ -57,6 +57,8 @@ Flags include:
 --base <path>
 --out|-o <path>
 --builtins <path>
+--imports <path>
+--defer <specifier>
 --linked
 --format|-f
 --encoding|-e

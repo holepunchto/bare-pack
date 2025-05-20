@@ -16,6 +16,11 @@ const cmd = command(
   flag('--base <path>', 'The base path of the bundle'),
   flag('--out|-o <path>', 'The output path of the bundle'),
   flag('--builtins <path>', 'A list of builtin modules'),
+  flag('--imports <path>', 'A map of global import overrides'),
+  flag(
+    '--defer <specifier>',
+    'A module specifier to defer resolution of'
+  ).multiple(),
   flag('--linked', 'Resolve linked: addons instead of file: prebuilds'),
   flag('--format|-f <name>', 'The bundle format to use'),
   flag('--encoding|-e <name>', 'The encoding to use for text bundle formats'),
@@ -31,6 +36,8 @@ const cmd = command(
       base = '.',
       out,
       builtins,
+      imports,
+      defer,
       linked,
       format = defaultFormat(out),
       encoding = 'utf8',
@@ -52,6 +59,8 @@ const cmd = command(
         target,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
+        imports: imports ? require(path.resolve(imports)) : null,
+        defer,
         linked,
         preset
       },
