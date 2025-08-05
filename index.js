@@ -25,6 +25,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
     traverse.module(
       entry,
       await readModule(entry),
+      null,
       { addons, assets },
       new Set(),
       opts
