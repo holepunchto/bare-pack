@@ -13,6 +13,10 @@
     "./preset/*": "./lib/preset/*.js"
   },
   "imports": {
+    "fs": {
+      "bare": "bare-fs",
+      "default": "fs"
+    },
     "url": {
       "bare": "bare-url",
       "default": "url"
@@ -46,8 +50,9 @@
   "dependencies": {
     "bare-bundle": "^1.8.3",
     "bare-bundle-id": "^1.0.0",
+    "bare-fs": "^4.2.1",
     "bare-module-traverse": "~1.5.1",
-    "bare-url": "^2.1.3",
+    "bare-url": "*",
     "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
   },
