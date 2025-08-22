@@ -12,6 +12,12 @@
     "./preset": "./lib/preset.js",
     "./preset/*": "./lib/preset/*.js"
   },
+  "imports": {
+    "url": {
+      "bare": "bare-url",
+      "default": "url"
+    }
+  },
   "bin": {
     "bare-pack": "bin.js"
   },
@@ -41,12 +47,12 @@
     "bare-bundle": "^1.8.3",
     "bare-bundle-id": "^1.0.0",
     "bare-module-traverse": "~1.5.1",
+    "bare-url": "^2.1.3",
     "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
   },
   "devDependencies": {
     "bare-buffer": "^3.0.2",
-    "bare-url": "^2.1.3",
     "brittle": "^3.1.1",
     "prettier": "^3.3.3",
     "prettier-config-standard": "^7.0.0"
