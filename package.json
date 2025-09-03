@@ -17,6 +17,10 @@
       "bare": "bare-fs",
       "default": "fs"
     },
+    "path": {
+      "bare": "bare-path",
+      "default": "path"
+    },
     "url": {
       "bare": "bare-url",
       "default": "url"
@@ -52,6 +56,7 @@
     "bare-bundle-id": "^1.0.0",
     "bare-fs": "^4.2.1",
     "bare-module-traverse": "~1.5.1",
+    "bare-path": "^3.0.0",
     "bare-url": "*",
     "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
