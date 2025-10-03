@@ -1,6 +1,6 @@
 {
   "name": "bare-pack",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Bundle packing for Bare",
   "exports": {
     "./package": "./package.json",
