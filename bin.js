@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const path = require('path')
+const os = require('os')
 const { pathToFileURL } = require('url')
 const { command, flag, arg, summary } = require('paparam')
 const { resolve } = require('bare-module-traverse')
@@ -41,10 +42,11 @@ const cmd = command(
       linked,
       format = defaultFormat(out),
       encoding = 'utf8',
-      platform,
-      arch,
-      simulator,
-      target,
+      platform = os.platform(),
+      arch = os.arch(),
+      simulator = false,
+      target = [`${platform}-${arch}${simulator ? '-simulator' : ''}`],
+      hosts = target,
       preset
     } = cmd.flags
 
@@ -57,6 +59,7 @@ const cmd = command(
         arch,
         simulator,
         target,
+        hosts,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
         imports: imports ? require(path.resolve(imports)) : null,
