@@ -46,7 +46,6 @@ const cmd = command(
       arch = os.arch(),
       simulator = false,
       target = [`${platform}-${arch}${simulator ? '-simulator' : ''}`],
-      hosts = target,
       preset
     } = cmd.flags
 
@@ -59,7 +58,6 @@ const cmd = command(
         arch,
         simulator,
         target,
-        hosts,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
         imports: imports ? require(path.resolve(imports)) : null,
