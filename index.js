@@ -10,6 +10,8 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
     opts = {}
   }
 
+  if (!listPrefix) listPrefix = defaultListPrefix(readModule)
+
   opts = withPreset(opts)
 
   const { concurrency = 0 } = opts
@@ -52,14 +54,8 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
       } else if (value.prefix) {
         const result = []
 
-        if (typeof listPrefix === 'function') {
-          for await (const url of listPrefix(value.prefix)) {
-            result.push(url)
-          }
-        } else {
-          if ((await readModule(value.prefix)) !== null) {
-            result.push(value.prefix)
-          }
+        for await (const url of listPrefix(value.prefix)) {
+          result.push(url)
         }
 
         next = generator.next(result)
@@ -95,4 +91,12 @@ function withPreset(opts = {}) {
   }
 
   return opts
+}
+
+function defaultListPrefix(readModule) {
+  return async function* listPrefix(prefix) {
+    if ((await readModule(prefix)) !== null) {
+      yield prefix
+    }
+  }
 }
