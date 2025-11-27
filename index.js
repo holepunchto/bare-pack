@@ -24,14 +24,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
   const assets = []
 
   await process(
-    traverse.module(
-      entry,
-      await readModule(entry),
-      null,
-      { addons, assets },
-      new Set(),
-      opts
-    )
+    traverse.module(entry, await readModule(entry), null, { addons, assets }, new Set(), opts)
   )
 
   bundle.addons = addons.map((url) => url.href)

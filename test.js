@@ -59,11 +59,7 @@ test('require.addon', async (t) => {
     return null
   }
 
-  const bundle = await pack(
-    new URL('file:///foo.js'),
-    { host, extensions: ['.bare'] },
-    readModule
-  )
+  const bundle = await pack(new URL('file:///foo.js'), { host, extensions: ['.bare'] }, readModule)
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.addon('.')", {

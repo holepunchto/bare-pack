@@ -21,11 +21,7 @@ async function* listPrefix(url) {
   // Yield URLs that have `url` as a prefix. The list may be empty.
 }
 
-const bundle = await pack(
-  new URL('file:///directory/file.js'),
-  readModule,
-  listPrefix
-)
+const bundle = await pack(new URL('file:///directory/file.js'), readModule, listPrefix)
 ```
 
 ## API

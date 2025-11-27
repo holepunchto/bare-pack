@@ -18,10 +18,7 @@ const cmd = command(
   flag('--out|-o <path>', 'The output path of the bundle'),
   flag('--builtins <path>', 'A list of builtin modules'),
   flag('--imports <path>', 'A map of global import overrides'),
-  flag(
-    '--defer <specifier>',
-    'A module specifier to defer resolution of'
-  ).multiple(),
+  flag('--defer <specifier>', 'A module specifier to defer resolution of').multiple(),
   flag('--linked', 'Resolve linked: addons instead of file: prebuilds'),
   flag('--format|-f <name>', 'The bundle format to use'),
   flag('--encoding|-e <name>', 'The encoding to use for text bundle formats'),
@@ -106,8 +103,7 @@ cmd.parse()
 
 function defaultFormat(out) {
   if (typeof out !== 'string') return 'bundle'
-  if (out.endsWith('.bundle.js') || out.endsWith('.bundle.cjs'))
-    return 'bundle.cjs'
+  if (out.endsWith('.bundle.js') || out.endsWith('.bundle.cjs')) return 'bundle.cjs'
   if (out.endsWith('.bundle.mjs')) return 'bundle.mjs'
   if (out.endsWith('.bundle.json')) return 'bundle.json'
   return 'bundle'
