@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 const path = require('path')
-const os = require('os')
 const { pathToFileURL } = require('url')
 const { command, flag, arg, summary } = require('paparam')
 const { resolve } = require('bare-module-traverse')
@@ -22,10 +21,7 @@ const cmd = command(
   flag('--linked', 'Resolve linked: addons instead of file: prebuilds'),
   flag('--format|-f <name>', 'The bundle format to use'),
   flag('--encoding|-e <name>', 'The encoding to use for text bundle formats'),
-  flag('--platform|-p <name>', 'The operating system platform to bundle for'),
-  flag('--arch|-a <name>', 'The operating system architecture to bundle for'),
-  flag('--simulator', 'Bundle for a simulator'),
-  flag('--target|-t <host>', 'The host to bundle for').multiple(),
+  flag('--host <host>', 'The host to bundle for').multiple(),
   flag('--preset <name>', 'Apply an option preset'),
   async (cmd) => {
     const { entry } = cmd.args
@@ -39,10 +35,7 @@ const cmd = command(
       linked,
       format = defaultFormat(out),
       encoding = 'utf8',
-      platform = os.platform(),
-      arch = os.arch(),
-      simulator = false,
-      target = [`${platform}-${arch}${simulator ? '-simulator' : ''}`],
+      host: hosts = [`${process.platform}-${process.arch}`],
       preset
     } = cmd.flags
 
@@ -51,10 +44,7 @@ const cmd = command(
     let bundle = await pack(
       pathToFileURL(entry),
       {
-        platform,
-        arch,
-        simulator,
-        target,
+        hosts,
         resolve: resolve.bare,
         builtins: builtins ? require(path.resolve(builtins)) : [],
         imports: imports ? require(path.resolve(imports)) : null,

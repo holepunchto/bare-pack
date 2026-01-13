@@ -58,26 +58,19 @@ Flags include:
 --linked
 --format|-f
 --encoding|-e
---platform|-p <name>
---arch|-a <name>
---simulator
---target|-t <host>
+--host <host>
 --help|-h
 ```
 
-##### Target
+##### Host
 
-By default, the bundle will be created for the host platform and architecture. To instead create a bundle for a different target system, pass the `--platform`, `--arch`, and `--simulator` flags.
-
-```console
-bare-pack --platform <darwin|ios|linux|android|win32> --arch <arm|arm64|ia32|x64> [--simulator] index.js
-```
-
-Behind the scenes, the `--platform`, `--arch`, and `--simulator` flags are used to construct a single `--target` flag for the targeted system. To create a combined bundle for multiple target systems, pass several `--target` flags explicitly.
+By default, the bundle will be created for the host platform and architecture. To instead create a bundle for a different system, pass the `--host` flags.
 
 ```console
-bare-pack --target <platform>-<arch>[-simulator] --target ... index.js
+bare-pack --host <platform>-<arch>[-<environment>] index.js
 ```
+
+The `--host` flag may be specified multiple times to create a combined bundle for multiple systems.
 
 ##### Linking
 
