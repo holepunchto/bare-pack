@@ -25,7 +25,7 @@ const cmd = command(
   flag('--preset <name>', 'Apply an option preset'),
   async (cmd) => {
     const { entry } = cmd.args
-    const {
+    let {
       version,
       base = '.',
       out,
@@ -41,13 +41,25 @@ const cmd = command(
 
     if (version) return console.log(`v${pkg.version}`)
 
+    if (builtins) {
+      builtins = require(path.resolve(builtins))
+
+      if ('default' in builtins) builtins = builtins.default
+    }
+
+    if (imports) {
+      imports = require(path.resolve(imports))
+
+      if ('default' in imports) imports = imports.default
+    }
+
     let bundle = await pack(
       pathToFileURL(entry),
       {
-        hosts,
         resolve: resolve.bare,
-        builtins: builtins ? require(path.resolve(builtins)) : [],
-        imports: imports ? require(path.resolve(imports)) : null,
+        hosts,
+        builtins,
+        imports,
         defer,
         linked,
         preset
