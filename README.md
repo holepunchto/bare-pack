@@ -67,10 +67,13 @@ Flags include:
 By default, the bundle will be created for the host platform and architecture. To instead create a bundle for a different system, pass the `--host` flags.
 
 ```console
-bare-pack --host <platform>-<arch>[-<environment>] index.js
+bare-pack --host <platform>[-<arch>[-<environment>]] index.js
 ```
 
 The `--host` flag may be specified multiple times to create a combined bundle for multiple systems.
+
+> [!TIP]
+> Most often you'll use one of the possible values of [`Bare.Addon.host`](https://github.com/holepunchto/bare#addonhost). Omitting the architecture and environment is also valid; `--host ios` will create a bundle for iOS with no architecture specific code, for example, whereas `--host ios-arm64-simulator` will create a bundle specifically for iOS ARM64 simulators.
 
 ##### Linking
 
