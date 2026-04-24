@@ -36,10 +36,11 @@
     "lib"
   ],
   "scripts": {
-    "test": "npm run lint && npm run test:bare && npm run test:node",
-    "test:bare": "bare test.js",
-    "test:node": "node test.js",
-    "lint": "prettier . --check"
+    "format": "prettier --write . && lunte --fix",
+    "lint": "prettier --check . && lunte",
+    "test": "npm run test:bare && npm run test:node",
+    "test:bare": "brittle-bare --coverage test.js",
+    "test:node": "brittle-node --coverage test.js"
   },
   "repository": {
     "type": "git",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "brittle": "^3.1.1",
+    "lunte": "^1.7.0",
     "prettier": "^3.3.3",
     "prettier-config-holepunch": "^2.0.0"
   },
