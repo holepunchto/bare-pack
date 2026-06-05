@@ -309,3 +309,351 @@ test('aliases, .ts to .js with defaultType MODULE', async (t) => {
 
   t.alike(bundle, expected)
 })
+
+test('offload addons', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.addon('.')"
+    }
+
+    if (url.href === 'file:///package.json') {
+      return '{ "name": "foo" }'
+    }
+
+    if (url.href === 'file:///prebuilds/host/foo.bare') {
+      return '<native code>'
+    }
+
+    return null
+  }
+
+  const written = []
+
+  function writeFile(url, source) {
+    written.push({ url: url.href, source })
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { host, extensions: ['.bare'], offload: { addons: true } },
+    readModule,
+    null,
+    writeFile
+  )
+
+  t.alike(written, [{ url: 'file:///prebuilds/host/foo.bare', source: '<native code>' }])
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "const bar = require.addon('.')", {
+      main: true,
+      imports: {
+        '#package': 'file:///package.json',
+        '.': 'file:///prebuilds/host/foo.bare'
+      }
+    })
+    .write('file:///package.json', '{ "name": "foo" }', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('offload assets', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.asset('./bar.txt')"
+    }
+
+    if (url.href === 'file:///bar.txt') {
+      return 'hello world'
+    }
+
+    return null
+  }
+
+  const written = []
+
+  function writeFile(url, source) {
+    written.push({ url: url.href, source })
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { offload: { assets: true } },
+    readModule,
+    null,
+    writeFile
+  )
+
+  t.alike(written, [{ url: 'file:///bar.txt', source: 'hello world' }])
+
+  const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
+    main: true,
+    imports: {
+      './bar.txt': 'file:///bar.txt'
+    }
+  })
+
+  t.alike(bundle, expected)
+})
+
+test('offload assets, imported as both module and asset', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "require('./bar.txt'), require.asset('./bar.txt')"
+    }
+
+    if (url.href === 'file:///bar.txt') {
+      return 'hello world'
+    }
+
+    return null
+  }
+
+  const written = []
+
+  function writeFile(url, source) {
+    written.push({ url: url.href, source })
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { offload: { assets: true } },
+    readModule,
+    null,
+    writeFile
+  )
+
+  t.alike(written, [{ url: 'file:///bar.txt', source: 'hello world' }])
+
+  const expected = new Bundle().write(
+    'file:///foo.js',
+    "require('./bar.txt'), require.asset('./bar.txt')",
+    {
+      main: true,
+      imports: {
+        './bar.txt': 'file:///bar.txt'
+      }
+    }
+  )
+
+  t.alike(bundle, expected)
+})
+
+test('offload, writeFile override', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.asset('./bar.txt')"
+    }
+
+    if (url.href === 'file:///bar.txt') {
+      return 'hello world'
+    }
+
+    return null
+  }
+
+  function writeFile(url) {
+    if (url.href === 'file:///bar.txt') return 'linked:bar.txt'
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { offload: { assets: true } },
+    readModule,
+    null,
+    writeFile
+  )
+
+  const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
+    main: true,
+    imports: {
+      './bar.txt': 'linked:bar.txt'
+    }
+  })
+
+  t.alike(bundle, expected)
+})
+
+test('offload with base', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///app/foo.js') {
+      return "const bar = require.addon('.')"
+    }
+
+    if (url.href === 'file:///app/package.json') {
+      return '{ "name": "foo" }'
+    }
+
+    if (url.href === 'file:///app/prebuilds/host/foo.bare') {
+      return '<native code>'
+    }
+
+    return null
+  }
+
+  function writeFile() {}
+
+  const bundle = await pack(
+    new URL('file:///app/foo.js'),
+    {
+      host,
+      extensions: ['.bare'],
+      offload: true,
+      base: new URL('file:///app/')
+    },
+    readModule,
+    null,
+    writeFile
+  )
+
+  const expected = new Bundle()
+    .write('/foo.js', "const bar = require.addon('.')", {
+      main: true,
+      imports: {
+        '#package': '/package.json',
+        '.': '/../prebuilds/host/foo.bare'
+      }
+    })
+    .write('/package.json', '{ "name": "foo" }', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('offload with base, root', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.addon('.')"
+    }
+
+    if (url.href === 'file:///package.json') {
+      return '{ "name": "foo" }'
+    }
+
+    if (url.href === 'file:///prebuilds/host/foo.bare') {
+      return '<native code>'
+    }
+
+    return null
+  }
+
+  function writeFile() {}
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    {
+      host,
+      extensions: ['.bare'],
+      offload: true,
+      base: new URL('file:///')
+    },
+    readModule,
+    null,
+    writeFile
+  )
+
+  const expected = new Bundle()
+    .write('/foo.js', "const bar = require.addon('.')", {
+      main: true,
+      imports: {
+        '#package': '/package.json',
+        '.': '/../prebuilds/host/foo.bare'
+      }
+    })
+    .write('/package.json', '{ "name": "foo" }', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('offload assets, directory', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.asset('./bar')"
+    }
+
+    if (url.href === 'file:///bar/a.txt') {
+      return 'hello a'
+    }
+
+    if (url.href === 'file:///bar/b.txt') {
+      return 'hello b'
+    }
+
+    return null
+  }
+
+  function listPrefix(url) {
+    if (url.href === 'file:///bar') {
+      return [new URL('file:///bar/a.txt'), new URL('file:///bar/b.txt')]
+    }
+
+    return []
+  }
+
+  function writeFile(url) {
+    return url.pathname
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { offload: { assets: true } },
+    readModule,
+    listPrefix,
+    writeFile
+  )
+
+  const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar')", {
+    main: true,
+    imports: {
+      './bar': '/bar'
+    }
+  })
+
+  t.alike(bundle, expected)
+})
+
+test('offload, linked addons not offloaded', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require.addon('.')"
+    }
+
+    if (url.href === 'file:///package.json') {
+      return '{ "name": "foo" }'
+    }
+
+    return null
+  }
+
+  function writeFile(url) {
+    t.fail('writeFile should not be called: ' + url.href)
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { host: 'darwin-arm64', extensions: ['.bare'], offload: true },
+    readModule,
+    null,
+    writeFile
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "const bar = require.addon('.')", {
+      main: true,
+      imports: {
+        '#package': 'file:///package.json',
+        '.': 'linked:foo.framework/foo'
+      }
+    })
+    .write('file:///package.json', '{ "name": "foo" }', {
+      imports: {}
+    })
+
+  expected.addons = ['linked:foo.framework/foo']
+
+  t.alike(bundle, expected)
+})

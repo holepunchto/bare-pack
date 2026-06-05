@@ -3,36 +3,135 @@ const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 const preset = require('./lib/preset')
 
-module.exports = async function pack(entry, opts, readModule, listPrefix) {
+module.exports = async function pack(entry, opts, readModule, listPrefix, writeFile) {
   if (typeof opts === 'function') {
+    writeFile = listPrefix
     listPrefix = readModule
     readModule = opts
     opts = {}
   }
 
   if (!listPrefix) listPrefix = defaultListPrefix(readModule)
+  if (!writeFile) writeFile = defaultWriteFile
 
   opts = withPreset(opts)
 
-  const { concurrency = 0 } = opts
+  let {
+    concurrency = 0,
+    base = null,
+    offload = false,
+    builtinProtocol = 'builtin:',
+    linkedProtocol = 'linked:',
+    deferredProtocol = 'deferred:'
+  } = opts
+
+  if (base !== null) base = new URL(base)
+
+  const offloadAddons = offload === true || (offload && offload.addons === true)
+  const offloadAssets = offload === true || (offload && offload.assets === true)
 
   const semaphore = concurrency > 0 ? new Semaphore(concurrency) : null
 
-  const bundle = new Bundle()
+  let bundle = new Bundle()
 
-  const addons = []
-  const assets = []
+  const addons = new Set()
+  const assets = new Set()
+  const dependencies = []
 
-  await process(
+  await collect(
     traverse.module(entry, await readModule(entry), null, { addons, assets }, new Set(), opts)
   )
 
-  bundle.addons = addons.map((url) => url.href)
-  bundle.assets = assets.map((url) => url.href)
+  const rewrites = new Map()
+
+  await Promise.all(dependencies.map(process))
+
+  for (const { url, source, imports } of dependencies) {
+    if (shouldOffload(url.href)) continue
+
+    bundle.write(url.href, source, {
+      main: url.href === entry.href,
+      imports
+    })
+  }
+
+  bundle.addons = [...addons].filter((href) => !shouldOffload(href)).sort()
+  bundle.assets = [...assets].filter((href) => !shouldOffload(href)).sort()
+
+  if (base !== null) bundle = bundle.unmount(base)
+
+  if (rewrites.size > 0) {
+    const resolutions = {}
+
+    for (const [key, value] of Object.entries(bundle.resolutions)) {
+      resolutions[key] = rewriteImportsMap(value, rewrites)
+    }
+
+    bundle.resolutions = resolutions
+  }
 
   return bundle
 
-  async function process(generator) {
+  function shouldOffload(href) {
+    if (href.startsWith(builtinProtocol)) return false
+    if (href.startsWith(linkedProtocol)) return false
+    if (href.startsWith(deferredProtocol)) return false
+
+    return (offloadAddons && addons.has(href)) || (offloadAssets && assets.has(href))
+  }
+
+  function postUnmountPath(url) {
+    if (
+      base === null ||
+      url.protocol !== base.protocol ||
+      url.host !== base.host ||
+      url.port !== base.port
+    ) {
+      return url.href
+    }
+
+    let basePath = base.pathname
+
+    if (!basePath.endsWith('/')) basePath += '/'
+
+    if (!url.pathname.startsWith(basePath)) return url.href
+
+    return '/' + url.pathname.slice(basePath.length)
+  }
+
+  async function process({ url, source }) {
+    if (!shouldOffload(url.href)) return
+
+    if (semaphore !== null) await semaphore.wait()
+
+    const target = await writeFile(url, source)
+
+    let key = postUnmountPath(url)
+    let value = null
+
+    if (target) value = String(target)
+    else if (base !== null) value = '/..' + key
+
+    if (value !== null) {
+      rewrites.set(key, value)
+
+      for (;;) {
+        key = key.substring(0, key.lastIndexOf('/'))
+
+        if (isTerminator(key)) break
+
+        value = value.substring(0, value.lastIndexOf('/'))
+
+        if (isTerminator(value)) break
+
+        rewrites.set(key, value)
+      }
+    }
+
+    if (semaphore !== null) semaphore.signal()
+  }
+
+  async function collect(generator) {
     if (semaphore !== null) await semaphore.wait()
 
     const queue = []
@@ -56,12 +155,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
         if (value.children) {
           queue.push(value.children)
         } else {
-          const { url, source, imports } = value.dependency
-
-          bundle.write(url.href, source, {
-            main: url.href === entry.href,
-            imports
-          })
+          dependencies.push(value.dependency)
         }
 
         next = generator.next()
@@ -70,7 +164,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix) {
 
     if (semaphore !== null) semaphore.signal()
 
-    await Promise.all(queue.map(process))
+    await Promise.all(queue.map(collect))
   }
 }
 
@@ -92,4 +186,36 @@ function defaultListPrefix(readModule) {
       yield prefix
     }
   }
+}
+
+function defaultWriteFile() {
+  return null
+}
+
+function isTerminator(input) {
+  return input === '' || input.endsWith('/') || input.endsWith(':')
+}
+
+function rewriteImportsMap(imports, rewrites) {
+  if (rewrites.size === 0 || typeof imports !== 'object' || imports === null) return null
+
+  return transformImportsMap(imports, (value) => rewrites.get(value) || value)
+}
+
+function transformImportsMap(value, fn) {
+  const imports = {}
+
+  for (const entry of Object.entries(value)) {
+    const condition = entry[0]
+
+    imports[condition] = transformImportsMapEntry(entry[1], fn)
+  }
+
+  return imports
+}
+
+function transformImportsMapEntry(value, fn) {
+  if (typeof value === 'string') return fn(value)
+
+  return transformImportsMap(value, fn)
 }

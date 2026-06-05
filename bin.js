@@ -19,6 +19,9 @@ const cmd = command(
   flag('--imports <path>', 'A map of global import overrides'),
   flag('--defer <specifier>', 'A module specifier to defer resolution of').multiple(),
   flag('--linked', 'Resolve linked: addons instead of file: prebuilds'),
+  flag('--offload', 'Offload addons and assets to disk next to --out'),
+  flag('--offload-addons', 'Offload addons to disk next to --out'),
+  flag('--offload-assets', 'Offload assets to disk next to --out'),
   flag('--format|-f <name>', 'The bundle format to use'),
   flag('--encoding|-e <name>', 'The encoding to use for text bundle formats'),
   flag('--host <host>', 'The host to bundle for').multiple(),
@@ -33,6 +36,9 @@ const cmd = command(
       imports,
       defer,
       linked,
+      offload = false,
+      offloadAddons = offload,
+      offloadAssets = offload,
       format = defaultFormat(out),
       encoding = 'utf8',
       host: hosts = [`${process.platform}-${process.arch}`],
@@ -53,7 +59,25 @@ const cmd = command(
       if ('default' in imports) imports = imports.default
     }
 
-    let bundle = await pack(
+    base = pathToFileURL(base)
+
+    if (!base.pathname.endsWith('/')) base.pathname += '/'
+
+    let writeFile
+
+    offload = { addons: offloadAddons, assets: offloadAssets }
+
+    if (offload.addons || offload.assets) {
+      if (!out) {
+        throw new Error('--out is required when offloading')
+      }
+
+      const dir = pathToFileURL(path.dirname(out) + '/')
+
+      if (dir.href !== base.href) writeFile = writeFileOffloaded(base, dir)
+    }
+
+    const bundle = await pack(
       pathToFileURL(entry),
       {
         resolve: resolve.bare,
@@ -62,13 +86,14 @@ const cmd = command(
         imports,
         defer,
         linked,
-        preset
+        preset,
+        base,
+        offload
       },
       fs.readModule,
-      fs.listPrefix
+      fs.listPrefix,
+      writeFile
     )
-
-    bundle = bundle.unmount(pathToFileURL(base))
 
     bundle.id = id(bundle).toString('hex')
 
@@ -91,10 +116,7 @@ const cmd = command(
     }
 
     if (out) {
-      const url = pathToFileURL(out)
-
-      await fs.makeDir(new URL('.', url))
-      await fs.writeFile(url, data)
+      await fs.writeFile(pathToFileURL(out), data)
     } else {
       await fs.write(1, data)
     }
@@ -102,6 +124,16 @@ const cmd = command(
 )
 
 cmd.parse()
+
+function writeFileOffloaded(base, dir) {
+  return function writeFile(url, source) {
+    const relative = url.pathname.startsWith(base.pathname)
+      ? url.pathname.slice(base.pathname.length)
+      : url.pathname.replace(/^\//, '')
+
+    return fs.writeFile(new URL(relative, dir), source)
+  }
+}
 
 function defaultFormat(out) {
   if (typeof out !== 'string') return 'bundle'

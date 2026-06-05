@@ -26,17 +26,23 @@ const bundle = await pack(new URL('file:///directory/file.js'), readModule, list
 
 ## API
 
-#### `const bundle = await pack(url[, options], readModule[, listPrefix])`
+#### `const bundle = await pack(url[, options], readModule[, listPrefix[, writeFile]])`
 
-Bundle the module graph rooted at `url`, which must be a WHATWG `URL` instance. `readModule` is called with a `URL` instance for every module to be read and must either return the module source, if it exists, or `null`. `listPrefix` is called with a `URL` instance of every prefix to be listed and must yield `URL` instances that have the specified `URL` as a prefix. If not provided, prefixes won't be bundled.
+Bundle the module graph rooted at `url`, which must be a WHATWG `URL` instance. `readModule` is called with a `URL` instance for every module to be read and must either return the module source, if it exists, or `null`. `listPrefix` is called with a `URL` instance of every prefix to be listed and must yield `URL` instances that have the specified `URL` as a prefix. If not provided, prefixes won't be bundled. `writeFile` is called for every addon or asset that should be offloaded rather than embedded; see [Offloading](#offloading) below. When `writeFile` is provided, `listPrefix` must be passed positionally (or as `null`).
 
 Options include:
 
 ```js
 options = {
-  concurrency: 0
+  concurrency: 0,
+  base: null,
+  offload: false
 }
 ```
+
+`base`, if set, must be a WHATWG `URL` instance (or string) indicating where the bundle will be deployed. The resulting bundle is unmounted relative to `base` so that all keys and resolutions become relative paths.
+
+`offload` controls whether addons and assets are written to the bundle or routed to `writeFile`. Pass `true` to offload both, or an object such as `{ addons: true }` or `{ assets: true }` to offload only one.
 
 Options supported by <https://github.com/holepunchto/bare-module-traverse> may also be specified.
 
@@ -60,6 +66,28 @@ function readModule(url) {
 const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
 ```
 
+##### Offloading
+
+To keep addons and assets out of the bundle, set `offload` to `true` (or `{ addons: true }` / `{ assets: true }` for a single kind) and provide a `writeFile` callback. Each offloaded file is passed to `writeFile` instead of being embedded and is omitted from `bundle.addons` and `bundle.assets`.
+
+`writeFile` receives the file's `URL` and source. If it returns a string, that string replaces the file's resolution in the bundle's imports map. Otherwise, when `base` is set, the resolution defaults to `'/../' + <path-relative-to-base>`, which resolves to a sibling of the bundle.
+
+```js
+function writeFile(url, source) {
+  // Persist `source` for `url`, e.g. to disk next to the bundle.
+}
+
+const bundle = await pack(
+  new URL('file:///app/foo.js'),
+  { offload: true, base: new URL('file:///app/') },
+  readModule,
+  null,
+  writeFile
+)
+```
+
+URLs with the `builtin:`, `linked:`, or `deferred:` protocol are never offloaded.
+
 ## CLI
 
 #### `bare-pack [flags] <entry>`
@@ -76,6 +104,9 @@ Flags include:
 --imports <path>
 --defer <specifier>
 --linked
+--offload
+--offload-addons
+--offload-assets
 --format|-f
 --encoding|-e
 --host <host>
@@ -166,6 +197,16 @@ To instead bundle the `addon` JavaScript module and only treat the native addon 
 ```
 
 See [`example/builtin`](example/builtin) for the full example.
+
+##### Offloading
+
+To keep addons and assets out of the bundle and write them to disk alongside `--out` instead, pass `--offload` (or `--offload-addons` / `--offload-assets` for a single kind). `--out` is required.
+
+```console
+bare-pack --offload --out ./dist/index.bundle index.js
+```
+
+Each offloaded file is written at the directory of `--out`, mirroring its path relative to `--base`. The bundle's resolution for the file becomes `/../<path-relative-to-base>`, so when the bundle is later mounted (e.g. at `./dist/index.bundle/`) the resolution points to the file's location next to the bundle. If `--out` happens to be inside `--base`, the file is not rewritten on disk.
 
 ##### Format
 
