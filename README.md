@@ -40,6 +40,26 @@ options = {
 
 Options supported by <https://github.com/holepunchto/bare-module-traverse> may also be specified.
 
+##### Aliases
+
+To bundle source files with extensions that aren't natively recognized, use the `aliases` option from <https://github.com/holepunchto/bare-module-traverse> to map them to a supported extension. The aliased extension is used for module type detection, so `readModule` must return source compatible with that type.
+
+```js
+function readModule(url) {
+  if (url.href === 'file:///foo.ts') {
+    return "const bar = require('./bar.ts')"
+  }
+
+  if (url.href === 'file:///bar.ts') {
+    return 'module.exports = 42'
+  }
+
+  return null
+}
+
+const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
+```
+
 ## CLI
 
 #### `bare-pack [flags] <entry>`
