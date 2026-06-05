@@ -229,11 +229,7 @@ test('aliases, .ts to .js', async (t) => {
     return null
   }
 
-  const bundle = await pack(
-    new URL('file:///foo.ts'),
-    { aliases: { '.ts': '.js' } },
-    readModule
-  )
+  const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
 
   const expected = new Bundle()
     .write('file:///foo.ts', "const bar = require('./bar.ts')", {
@@ -262,11 +258,7 @@ test('aliases, .mts to .mjs', async (t) => {
     return null
   }
 
-  const bundle = await pack(
-    new URL('file:///foo.mts'),
-    { aliases: { '.mts': '.mjs' } },
-    readModule
-  )
+  const bundle = await pack(new URL('file:///foo.mts'), { aliases: { '.mts': '.mjs' } }, readModule)
 
   const expected = new Bundle()
     .write('file:///foo.mts', "import './bar.mts'", {
