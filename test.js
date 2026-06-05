@@ -1,5 +1,6 @@
 const test = require('brittle')
 const Bundle = require('bare-bundle')
+const traverse = require('bare-module-traverse')
 const pack = require('.')
 
 const host = 'host'
@@ -209,6 +210,108 @@ test('require.asset, directory', async (t) => {
     })
     .write('file:///bar/b.txt', 'hello b', {
       asset: true,
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('aliases, .ts to .js', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.ts') {
+      return "const bar = require('./bar.ts')"
+    }
+
+    if (url.href === 'file:///bar.ts') {
+      return 'module.exports = 42'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.ts'),
+    { aliases: { '.ts': '.js' } },
+    readModule
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.ts', "const bar = require('./bar.ts')", {
+      main: true,
+      imports: {
+        './bar.ts': 'file:///bar.ts'
+      }
+    })
+    .write('file:///bar.ts', 'module.exports = 42', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('aliases, .mts to .mjs', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.mts') {
+      return "import './bar.mts'"
+    }
+
+    if (url.href === 'file:///bar.mts') {
+      return 'export default 42'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.mts'),
+    { aliases: { '.mts': '.mjs' } },
+    readModule
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.mts', "import './bar.mts'", {
+      main: true,
+      imports: {
+        './bar.mts': 'file:///bar.mts'
+      }
+    })
+    .write('file:///bar.mts', 'export default 42', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('aliases, .ts to .js with defaultType MODULE', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.ts') {
+      return "import './bar.ts'"
+    }
+
+    if (url.href === 'file:///bar.ts') {
+      return 'export default 42'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.ts'),
+    {
+      defaultType: traverse.constants.MODULE,
+      aliases: { '.ts': '.js' }
+    },
+    readModule
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.ts', "import './bar.ts'", {
+      main: true,
+      imports: {
+        './bar.ts': 'file:///bar.ts'
+      }
+    })
+    .write('file:///bar.ts', 'export default 42', {
       imports: {}
     })
 
