@@ -48,7 +48,7 @@ Options supported by <https://github.com/holepunchto/bare-module-traverse> may a
 
 ##### Aliases
 
-To bundle source files with extensions that aren't natively recognized, use the `aliases` option from <https://github.com/holepunchto/bare-module-traverse> to map them to a supported extension. The aliased extension is used for module type detection, so `readModule` must return source compatible with that type.
+To bundle source files with extensions that aren't natively recognized, use the `aliases` option from <https://github.com/holepunchto/bare-module-traverse> to map them to a supported extension. The aliased extension is used for module type detection, so `readModule` must return source compatible with that type. Aliased modules are stored in the bundle with the aliased extension, and resolutions to them are rewritten to match, so the example below stores `file:///foo.js` and `file:///bar.js`.
 
 ```js
 function readModule(url) {
