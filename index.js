@@ -46,11 +46,13 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
 
   await Promise.all(dependencies.map(process))
 
+  const main = traverse.alias(entry, opts)
+
   for (const { url, source, imports } of dependencies) {
     if (shouldOffload(url.href)) continue
 
     bundle.write(url.href, source, {
-      main: url.href === entry.href,
+      main: url.href === main.href,
       imports
     })
   }

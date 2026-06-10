@@ -232,13 +232,13 @@ test('aliases, .ts to .js', async (t) => {
   const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
 
   const expected = new Bundle()
-    .write('file:///foo.ts', "const bar = require('./bar.ts')", {
+    .write('file:///foo.js', "const bar = require('./bar.ts')", {
       main: true,
       imports: {
-        './bar.ts': 'file:///bar.ts'
+        './bar.ts': 'file:///bar.js'
       }
     })
-    .write('file:///bar.ts', 'module.exports = 42', {
+    .write('file:///bar.js', 'module.exports = 42', {
       imports: {}
     })
 
@@ -261,13 +261,13 @@ test('aliases, .mts to .mjs', async (t) => {
   const bundle = await pack(new URL('file:///foo.mts'), { aliases: { '.mts': '.mjs' } }, readModule)
 
   const expected = new Bundle()
-    .write('file:///foo.mts', "import './bar.mts'", {
+    .write('file:///foo.mjs', "import './bar.mts'", {
       main: true,
       imports: {
-        './bar.mts': 'file:///bar.mts'
+        './bar.mts': 'file:///bar.mjs'
       }
     })
-    .write('file:///bar.mts', 'export default 42', {
+    .write('file:///bar.mjs', 'export default 42', {
       imports: {}
     })
 
@@ -297,13 +297,13 @@ test('aliases, .ts to .js with defaultType MODULE', async (t) => {
   )
 
   const expected = new Bundle()
-    .write('file:///foo.ts', "import './bar.ts'", {
+    .write('file:///foo.js', "import './bar.ts'", {
       main: true,
       imports: {
-        './bar.ts': 'file:///bar.ts'
+        './bar.ts': 'file:///bar.js'
       }
     })
-    .write('file:///bar.ts', 'export default 42', {
+    .write('file:///bar.js', 'export default 42', {
       imports: {}
     })
 
