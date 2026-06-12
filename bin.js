@@ -37,8 +37,8 @@ const cmd = command(
       defer,
       linked,
       offload = false,
-      offloadAddons = offload,
-      offloadAssets = offload,
+      offloadAddons,
+      offloadAssets,
       format = defaultFormat(out),
       encoding = 'utf8',
       host: hosts = [`${process.platform}-${process.arch}`],
@@ -65,7 +65,7 @@ const cmd = command(
 
     let writeFile
 
-    offload = { addons: offloadAddons, assets: offloadAssets }
+    offload = { addons: offload || offloadAddons, assets: offload || offloadAssets }
 
     if (offload.addons || offload.assets) {
       if (!out) {
