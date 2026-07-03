@@ -56,7 +56,7 @@
     "bare-bundle": "^1.8.3",
     "bare-bundle-id": "^1.0.0",
     "bare-fs": "^4.2.1",
-    "bare-module-traverse": "~2.1.2",
+    "bare-module-traverse": "~2.2.0",
     "bare-path": "^3.0.0",
     "paparam": "^1.5.0",
     "promaphore": "^1.0.0"
