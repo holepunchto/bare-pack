@@ -37,10 +37,15 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
   const addons = new Set()
   const assets = new Set()
   const dependencies = []
+  const deferred = []
 
   await collect(
     traverse.module(entry, await readModule(entry), null, { addons, assets }, new Set(), opts)
   )
+
+  while (deferred.length > 0) {
+    await Promise.all(deferred.splice(0).map(collect))
+  }
 
   const rewrites = new Map()
 
@@ -145,6 +150,10 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
 
       if (value.module) {
         next = generator.next(await readModule(value.module))
+      } else if (value.probe) {
+        next = generator.next()
+      } else if (value.resolution) {
+        next = generator.next(value.resolution)
       } else if (value.prefix) {
         const result = []
 
@@ -153,12 +162,21 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
         }
 
         next = generator.next(result)
+      } else if (value.links) {
+        if (semaphore !== null) semaphore.signal()
+
+        await Promise.all(value.links.map(collect))
+
+        if (semaphore !== null) await semaphore.wait()
+
+        next = generator.next()
+      } else if (value.children) {
+        if (value.deferred) deferred.push(value.children)
+        else queue.push(value.children)
+
+        next = generator.next()
       } else {
-        if (value.children) {
-          queue.push(value.children)
-        } else {
-          dependencies.push(value.dependency)
-        }
+        dependencies.push(value.dependency)
 
         next = generator.next()
       }
