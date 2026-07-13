@@ -657,3 +657,80 @@ test('offload, linked addons not offloaded', async (t) => {
 
   t.alike(bundle, expected)
 })
+
+test('serial', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "const bar = require('./bar.js')"
+    }
+
+    if (url.href === 'file:///bar.js') {
+      return "const baz = require('./baz.js')"
+    }
+
+    if (url.href === 'file:///baz.js') {
+      return 'module.exports = 42'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(new URL('file:///foo.js'), { concurrency: 1 }, readModule)
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "const bar = require('./bar.js')", {
+      main: true,
+      imports: {
+        './bar.js': 'file:///bar.js'
+      }
+    })
+    .write('file:///bar.js', "const baz = require('./baz.js')", {
+      imports: {
+        './baz.js': 'file:///baz.js'
+      }
+    })
+    .write('file:///baz.js', 'module.exports = 42', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('serial, module imported as both asset and module', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') {
+      return "require.asset('./bar.js'), require('./bar.js')"
+    }
+
+    if (url.href === 'file:///bar.js') {
+      return "const baz = require('./baz.js')"
+    }
+
+    if (url.href === 'file:///baz.js') {
+      return 'module.exports = 42'
+    }
+
+    return null
+  }
+
+  const bundle = await pack(new URL('file:///foo.js'), { concurrency: 1 }, readModule)
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "require.asset('./bar.js'), require('./bar.js')", {
+      main: true,
+      imports: {
+        './bar.js': 'file:///bar.js'
+      }
+    })
+    .write('file:///bar.js', "const baz = require('./baz.js')", {
+      asset: true,
+      imports: {
+        './baz.js': 'file:///baz.js'
+      }
+    })
+    .write('file:///baz.js', 'module.exports = 42', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
