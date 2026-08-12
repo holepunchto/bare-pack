@@ -24,76 +24,9 @@ async function* listPrefix(url) {
 const bundle = await pack(new URL('file:///directory/file.js'), readModule, listPrefix)
 ```
 
-<!-- bare-refgen:api start -->
-
 ## API
 
-### Functions
-
-#### `pack`
-
-```ts
-pack(entry: URL, opts: PackOptions, readModule: ReadModuleCallback, listPrefix: ListPrefixCallback | null, writeFile: WriteFileCallback): Promise<Bundle>
-```
-
-Bundle the module graph rooted at `url`, which must be a WHATWG `URL` instance. `readModule` is called with a `URL` instance for every module to be read and must either return the module source, if it exists, or `null`. `listPrefix` is called with a `URL` instance of every prefix to be listed and must yield `URL` instances that have the specified `URL` as a prefix. If not provided, prefixes won't be bundled. `writeFile` is called for every addon or asset that should be offloaded rather than embedded; see the [Offloading section of the README](https://github.com/holepunchto/bare-pack#offloading). When `writeFile` is provided, `listPrefix` must be passed positionally (or as `null`).
-
-**Parameters**
-
-| Parameter    | Type                         | Default | Description                                                                                                                                                                                                                                                                                             |
-| ------------ | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entry`      | `URL`                        | —       | The root of the module graph to bundle; must be a WHATWG `URL` instance (typically a `file:` URL).                                                                                                                                                                                                      |
-| `opts`       | `PackOptions`                | —       | Packing options, extending [`TraverseOptions`](/reference/bare/modules/bare-module-traverse) from `bare-module-traverse`. Adds `concurrency`, `base` (the URL that offloaded file paths are made relative to), and `offload` (whether to write addons and/or assets to disk instead of embedding them). |
-| `readModule` | `ReadModuleCallback`         | —       | Called with a `URL` for every module in the graph; returns the module source as a `Buffer` or string, or `null` if it does not exist.                                                                                                                                                                   |
-| `listPrefix` | `ListPrefixCallback \| null` | —       | Called with a `URL` for every prefix to list; yields the `URL`s that have it as a prefix. Pass `null` (or omit) to skip prefix bundling.                                                                                                                                                                |
-| `writeFile`  | `WriteFileCallback`          | —       | Called for each addon or asset to offload rather than embed, receiving the file `URL` and its source. See the [Offloading section of the README](https://github.com/holepunchto/bare-pack#offloading).                                                                                                  |
-
-**Returns** `Promise<Bundle>` — a promise that resolves to the packed [`bare-bundle`](https://github.com/holepunchto/bare-bundle) `Bundle`, with all statically resolvable imports preresolved.
-
-### Types
-
-#### `PackOptions`
-
-```ts
-interface PackOptions {
-  concurrency?: number
-  base?: URL | string
-  offload?: boolean | { addons?: boolean; assets?: boolean }
-  defaultType?: number
-  aliases?: Record<string, AliasableExtension>
-  resolve?: (entry: Import, parentURL: URL, opts?: ResolveOptions) => Resolver
-  builtinProtocol?: string
-  builtins?: Builtins
-  conditions?: Conditions
-  extensions?: string[]
-  host?: string
-  hosts?: string[]
-  linked?: boolean
-  linkedProtocol?: string
-  matchedConditions?: string[]
-  resolutions?: ResolutionsMap
-}
-```
-
-#### `ReadModuleCallback`
-
-```ts
-interface ReadModuleCallback {}
-```
-
-#### `ListPrefixCallback`
-
-```ts
-interface ListPrefixCallback {}
-```
-
-#### `WriteFileCallback`
-
-```ts
-interface WriteFileCallback {}
-```
-
-<!-- bare-refgen:api end -->
+See the [full API reference](https://docs.pears.com/reference/bare/modules/bare-pack).
 
 ## CLI
 
