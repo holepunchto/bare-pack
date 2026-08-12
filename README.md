@@ -26,7 +26,7 @@ const bundle = await pack(new URL('file:///directory/file.js'), readModule, list
 
 ## API
 
-See the [full API reference](https://docs.pears.com/reference/bare/modules/bare-pack).
+See the [`bare-pack` reference](https://docs.pears.com/reference/bare/modules/bare-pack).
 
 ## CLI
 
