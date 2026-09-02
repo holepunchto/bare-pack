@@ -28,6 +28,48 @@ const bundle = await pack(new URL('file:///directory/file.js'), readModule, list
 
 See the [`bare-pack` reference](https://docs.pears.com/reference/bare/modules/bare-pack).
 
+## Aliases
+
+To bundle source files with extensions that aren't natively recognized, use the `aliases` option from <https://github.com/holepunchto/bare-module-traverse> to map them to a supported extension. The aliased extension is used for module type detection, so `readModule` must return source compatible with that type. Aliased modules are stored in the bundle with the aliased extension, and resolutions to them are rewritten to match, so the example below stores `file:///foo.js` and `file:///bar.js`.
+
+```js
+function readModule(url) {
+  if (url.href === 'file:///foo.ts') {
+    return "const bar = require('./bar.ts')"
+  }
+
+  if (url.href === 'file:///bar.ts') {
+    return 'module.exports = 42'
+  }
+
+  return null
+}
+
+const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
+```
+
+## Offloading
+
+To keep addons and assets out of the bundle, set `offload` to `true` (or `{ addons: true }` / `{ assets: true }` for a single kind) and provide a `writeFile` callback. Each offloaded file is passed to `writeFile` instead of being embedded and is omitted from `bundle.addons` and `bundle.assets`.
+
+`writeFile` receives the file's `URL` and source. If it returns a string, that string replaces the file's resolution in the bundle's imports map. Otherwise, when `base` is set, the resolution defaults to `'/../' + <path-relative-to-base>`, which resolves to a sibling of the bundle.
+
+```js
+function writeFile(url, source) {
+  // Persist `source` for `url`, e.g. to disk next to the bundle.
+}
+
+const bundle = await pack(
+  new URL('file:///app/foo.js'),
+  { offload: true, base: new URL('file:///app/') },
+  readModule,
+  null,
+  writeFile
+)
+```
+
+URLs with the `builtin:`, `linked:`, or `deferred:` protocol are never offloaded.
+
 ## CLI
 
 #### `bare-pack [flags] <entry>`
