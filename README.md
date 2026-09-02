@@ -26,27 +26,9 @@ const bundle = await pack(new URL('file:///directory/file.js'), readModule, list
 
 ## API
 
-#### `const bundle = await pack(url[, options], readModule[, listPrefix[, writeFile]])`
+See the [`bare-pack` reference](https://docs.pears.com/reference/bare/modules/bare-pack).
 
-Bundle the module graph rooted at `url`, which must be a WHATWG `URL` instance. `readModule` is called with a `URL` instance for every module to be read and must either return the module source, if it exists, or `null`. `listPrefix` is called with a `URL` instance of every prefix to be listed and must yield `URL` instances that have the specified `URL` as a prefix. If not provided, prefixes won't be bundled. `writeFile` is called for every addon or asset that should be offloaded rather than embedded; see [Offloading](#offloading) below. When `writeFile` is provided, `listPrefix` must be passed positionally (or as `null`).
-
-Options include:
-
-```js
-options = {
-  concurrency: 0,
-  base: null,
-  offload: false
-}
-```
-
-`base`, if set, must be a WHATWG `URL` instance (or string) indicating where the bundle will be deployed. The resulting bundle is unmounted relative to `base` so that all keys and resolutions become relative paths.
-
-`offload` controls whether addons and assets are written to the bundle or routed to `writeFile`. Pass `true` to offload both, or an object such as `{ addons: true }` or `{ assets: true }` to offload only one.
-
-Options supported by <https://github.com/holepunchto/bare-module-traverse> may also be specified.
-
-##### Aliases
+## Aliases
 
 To bundle source files with extensions that aren't natively recognized, use the `aliases` option from <https://github.com/holepunchto/bare-module-traverse> to map them to a supported extension. The aliased extension is used for module type detection, so `readModule` must return source compatible with that type. Aliased modules are stored in the bundle with the aliased extension, and resolutions to them are rewritten to match, so the example below stores `file:///foo.js` and `file:///bar.js`.
 
@@ -66,7 +48,7 @@ function readModule(url) {
 const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' } }, readModule)
 ```
 
-##### Offloading
+## Offloading
 
 To keep addons and assets out of the bundle, set `offload` to `true` (or `{ addons: true }` / `{ assets: true }` for a single kind) and provide a `writeFile` callback. Each offloaded file is passed to `writeFile` instead of being embedded and is omitted from `bundle.addons` and `bundle.assets`.
 
