@@ -11,6 +11,9 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
     opts = {}
   }
 
+  // Resolution reads the same manifests repeatedly.
+  readModule = memoize(readModule)
+
   if (!listPrefix) listPrefix = defaultListPrefix(readModule)
   if (!writeFile) writeFile = defaultWriteFile
 
@@ -185,6 +188,21 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
     if (semaphore !== null) semaphore.signal()
 
     await Promise.all(queue.map(collect))
+  }
+}
+
+function memoize(readModule) {
+  const reads = new Map()
+
+  return function read(url) {
+    let read = reads.get(url.href)
+
+    if (read === undefined) {
+      read = Promise.resolve(readModule(url))
+      reads.set(url.href, read)
+    }
+
+    return read
   }
 }
 
