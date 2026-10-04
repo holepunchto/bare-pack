@@ -67,7 +67,7 @@ test('require.addon', async (t) => {
       main: true,
       imports: {
         '#package': 'file:///package.json',
-        '.': 'file:///prebuilds/host/foo.bare'
+        '.': { addon: 'file:///prebuilds/host/foo.bare' }
       }
     })
     .write('file:///prebuilds/host/foo.bare', '<native code>', {
@@ -116,8 +116,10 @@ test('require.addon, hosts list', async (t) => {
       imports: {
         '#package': 'file:///package.json',
         '.': {
-          a: 'file:///prebuilds/host-a/foo.bare',
-          b: 'file:///prebuilds/host-b/foo.bare'
+          addon: {
+            a: 'file:///prebuilds/host-a/foo.bare',
+            b: 'file:///prebuilds/host-b/foo.bare'
+          }
         }
       }
     })
@@ -159,7 +161,7 @@ test('require.asset', async (t) => {
     .write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
       main: true,
       imports: {
-        './bar.txt': 'file:///bar.txt'
+        './bar.txt': { asset: 'file:///bar.txt' }
       }
     })
     .write('file:///bar.txt', 'hello world', {
@@ -201,7 +203,7 @@ test('require.asset, directory', async (t) => {
     .write('file:///foo.js', "const bar = require.asset('./bar')", {
       main: true,
       imports: {
-        './bar': 'file:///bar'
+        './bar': { asset: 'file:///bar' }
       }
     })
     .write('file:///bar/a.txt', 'hello a', {
@@ -348,7 +350,7 @@ test('offload addons', async (t) => {
       main: true,
       imports: {
         '#package': 'file:///package.json',
-        '.': 'file:///prebuilds/host/foo.bare'
+        '.': { addon: 'file:///prebuilds/host/foo.bare' }
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
@@ -390,7 +392,7 @@ test('offload assets', async (t) => {
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
     main: true,
     imports: {
-      './bar.txt': 'file:///bar.txt'
+      './bar.txt': { asset: 'file:///bar.txt' }
     }
   })
 
@@ -432,7 +434,7 @@ test('offload assets, imported as both module and asset', async (t) => {
     {
       main: true,
       imports: {
-        './bar.txt': 'file:///bar.txt'
+        './bar.txt': { require: 'file:///bar.txt', asset: 'file:///bar.txt' }
       }
     }
   )
@@ -468,7 +470,7 @@ test('offload, writeFile override', async (t) => {
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
     main: true,
     imports: {
-      './bar.txt': 'linked:bar.txt'
+      './bar.txt': { asset: 'linked:bar.txt' }
     }
   })
 
@@ -512,7 +514,7 @@ test('offload with base', async (t) => {
       main: true,
       imports: {
         '#package': '/package.json',
-        '.': '/../prebuilds/host/foo.bare'
+        '.': { addon: '/../prebuilds/host/foo.bare' }
       }
     })
     .write('/package.json', '{ "name": "foo" }', {
@@ -559,7 +561,7 @@ test('offload with base, root', async (t) => {
       main: true,
       imports: {
         '#package': '/package.json',
-        '.': '/../prebuilds/host/foo.bare'
+        '.': { addon: '/../prebuilds/host/foo.bare' }
       }
     })
     .write('/package.json', '{ "name": "foo" }', {
@@ -609,7 +611,7 @@ test('offload assets, directory', async (t) => {
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar')", {
     main: true,
     imports: {
-      './bar': '/bar'
+      './bar': { asset: '/bar' }
     }
   })
 
@@ -646,7 +648,7 @@ test('offload, linked addons not offloaded', async (t) => {
       main: true,
       imports: {
         '#package': 'file:///package.json',
-        '.': 'linked:foo.framework/foo'
+        '.': { addon: 'linked:foo.framework/foo' }
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
@@ -719,7 +721,7 @@ test('serial, module imported as both asset and module', async (t) => {
     .write('file:///foo.js', "require.asset('./bar.js'), require('./bar.js')", {
       main: true,
       imports: {
-        './bar.js': 'file:///bar.js'
+        './bar.js': { require: 'file:///bar.js', asset: 'file:///bar.js' }
       }
     })
     .write('file:///bar.js', "const baz = require('./baz.js')", {
