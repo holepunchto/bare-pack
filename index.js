@@ -65,8 +65,8 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
     })
   }
 
-  bundle.addons = [...addons].filter((href) => !shouldOffload(href)).sort()
-  bundle.assets = [...assets].filter((href) => !shouldOffload(href)).sort()
+  bundle.addons = [...addons]
+  bundle.assets = [...assets]
 
   if (base !== null) bundle = bundle.unmount(base)
 
@@ -78,6 +78,9 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
     }
 
     bundle.resolutions = resolutions
+
+    bundle.addons = bundle.addons.map((href) => rewrites.get(href) || href)
+    bundle.assets = bundle.assets.map((href) => rewrites.get(href) || href)
   }
 
   return bundle

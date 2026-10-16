@@ -357,6 +357,8 @@ test('offload addons', async (t) => {
       imports: {}
     })
 
+  expected.addons = ['file:///prebuilds/host/foo.bare']
+
   t.alike(bundle, expected)
 })
 
@@ -395,6 +397,8 @@ test('offload assets', async (t) => {
       './bar.txt': { asset: 'file:///bar.txt' }
     }
   })
+
+  expected.assets = ['file:///bar.txt']
 
   t.alike(bundle, expected)
 })
@@ -439,6 +443,8 @@ test('offload assets, imported as both module and asset', async (t) => {
     }
   )
 
+  expected.assets = ['file:///bar.txt']
+
   t.alike(bundle, expected)
 })
 
@@ -473,6 +479,8 @@ test('offload, writeFile override', async (t) => {
       './bar.txt': { asset: 'linked:bar.txt' }
     }
   })
+
+  expected.assets = ['linked:bar.txt']
 
   t.alike(bundle, expected)
 })
@@ -521,6 +529,8 @@ test('offload with base', async (t) => {
       imports: {}
     })
 
+  expected.addons = ['/../prebuilds/host/foo.bare']
+
   t.alike(bundle, expected)
 })
 
@@ -568,6 +578,8 @@ test('offload with base, root', async (t) => {
       imports: {}
     })
 
+  expected.addons = ['/../prebuilds/host/foo.bare']
+
   t.alike(bundle, expected)
 })
 
@@ -614,6 +626,8 @@ test('offload assets, directory', async (t) => {
       './bar': { asset: '/bar' }
     }
   })
+
+  expected.assets = ['/bar/a.txt', '/bar/b.txt']
 
   t.alike(bundle, expected)
 })

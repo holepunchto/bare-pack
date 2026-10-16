@@ -50,7 +50,7 @@ const bundle = await pack(new URL('file:///foo.ts'), { aliases: { '.ts': '.js' }
 
 ## Offloading
 
-To keep addons and assets out of the bundle, set `offload` to `true` (or `{ addons: true }` / `{ assets: true }` for a single kind) and provide a `writeFile` callback. Each offloaded file is passed to `writeFile` instead of being embedded and is omitted from `bundle.addons` and `bundle.assets`.
+To keep addons and assets out of the bundle, set `offload` to `true` (or `{ addons: true }` / `{ assets: true }` for a single kind) and provide a `writeFile` callback. Each offloaded file is passed to `writeFile` instead of being embedded. Offloaded files stay declared in `bundle.addons` and `bundle.assets` under their rewritten resolution, so the lists remain complete and loaders can tell which addons and assets the bundle needs.
 
 `writeFile` receives the file's `URL` and source. If it returns a string, that string replaces the file's resolution in the bundle's imports map. Otherwise, when `base` is set, the resolution defaults to `'/../' + <path-relative-to-base>`, which resolves to a sibling of the bundle.
 
