@@ -92,6 +92,7 @@ const cmd = command(
       },
       fs.readModule,
       fs.listPrefix,
+      fs.resolveModule,
       writeFile
     )
 

@@ -3,9 +3,17 @@ const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 const preset = require('./lib/preset')
 
-module.exports = async function pack(entry, opts, readModule, listPrefix, writeFile) {
+module.exports = async function pack(
+  entry,
+  opts,
+  readModule,
+  listPrefix,
+  resolveModule,
+  writeFile
+) {
   if (typeof opts === 'function') {
-    writeFile = listPrefix
+    writeFile = resolveModule
+    resolveModule = listPrefix
     listPrefix = readModule
     readModule = opts
     opts = {}
@@ -15,6 +23,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
   readModule = memoize(readModule)
 
   if (!listPrefix) listPrefix = defaultListPrefix(readModule)
+  if (!resolveModule) resolveModule = defaultResolveModule
   if (!writeFile) writeFile = defaultWriteFile
 
   opts = withPreset(opts)
@@ -159,7 +168,7 @@ module.exports = async function pack(entry, opts, readModule, listPrefix, writeF
       } else if (value.probe) {
         next = generator.next()
       } else if (value.resolution) {
-        next = generator.next(value.resolution)
+        next = generator.next(await resolveModule(value.resolution))
       } else if (value.prefix) {
         const result = []
 
@@ -227,6 +236,10 @@ function defaultListPrefix(readModule) {
       yield prefix
     }
   }
+}
+
+function defaultResolveModule(url) {
+  return url
 }
 
 function defaultWriteFile() {

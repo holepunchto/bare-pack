@@ -340,6 +340,7 @@ test('offload addons', async (t) => {
     { host, extensions: ['.bare'], offload: { addons: true } },
     readModule,
     null,
+    null,
     writeFile
   )
 
@@ -386,6 +387,7 @@ test('offload assets', async (t) => {
     { offload: { assets: true } },
     readModule,
     null,
+    null,
     writeFile
   )
 
@@ -426,6 +428,7 @@ test('offload assets, imported as both module and asset', async (t) => {
     new URL('file:///foo.js'),
     { offload: { assets: true } },
     readModule,
+    null,
     null,
     writeFile
   )
@@ -470,6 +473,7 @@ test('offload, writeFile override', async (t) => {
     { offload: { assets: true } },
     readModule,
     null,
+    null,
     writeFile
   )
 
@@ -513,6 +517,7 @@ test('offload with base', async (t) => {
       base: new URL('file:///app/')
     },
     readModule,
+    null,
     null,
     writeFile
   )
@@ -562,6 +567,7 @@ test('offload with base, root', async (t) => {
       base: new URL('file:///')
     },
     readModule,
+    null,
     null,
     writeFile
   )
@@ -617,6 +623,7 @@ test('offload assets, directory', async (t) => {
     { offload: { assets: true } },
     readModule,
     listPrefix,
+    null,
     writeFile
   )
 
@@ -653,6 +660,7 @@ test('offload, linked addons not offloaded', async (t) => {
     new URL('file:///foo.js'),
     { host: 'darwin-arm64', extensions: ['.bare'], offload: true },
     readModule,
+    null,
     null,
     writeFile
   )
@@ -749,4 +757,60 @@ test('serial, module imported as both asset and module', async (t) => {
     })
 
   t.alike(bundle, expected)
+})
+
+test('resolveModule, symlinked package', async (t) => {
+  // `bar` is linked into `/app/node_modules` from `/store`, where its own
+  // dependency `baz` lives next to it.
+  const modules = {
+    'file:///app/foo.js': "require('bar')",
+    'file:///app/node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///app/node_modules/bar/index.js': "require('baz')",
+    'file:///store/bar/package.json': '{ "name": "bar" }',
+    'file:///store/bar/index.js': "require('baz')",
+    'file:///store/node_modules/baz/package.json': '{ "name": "baz" }',
+    'file:///store/node_modules/baz/index.js': 'module.exports = 42'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  function resolveModule(url) {
+    return new URL(url.href.replace('file:///app/node_modules/bar/', 'file:///store/bar/'))
+  }
+
+  const opts = { resolve: traverse.resolve.bare }
+
+  await t.exception(pack(new URL('file:///app/foo.js'), opts, readModule), /MODULE_NOT_FOUND/)
+
+  const bundle = await pack(new URL('file:///app/foo.js'), opts, readModule, null, resolveModule)
+
+  t.alike([...bundle.keys()].sort(), [
+    'file:///app/foo.js',
+    'file:///store/bar/index.js',
+    'file:///store/bar/package.json',
+    'file:///store/node_modules/baz/index.js',
+    'file:///store/node_modules/baz/package.json'
+  ])
+
+  t.is(bundle.resolutions['file:///app/foo.js'].bar, 'file:///store/bar/index.js')
+})
+
+test('resolveModule, without options', async (t) => {
+  function readModule(url) {
+    if (url.href === 'file:///foo.js') return "require('./bar.js')"
+    if (url.href === 'file:///bar.js') return 'module.exports = 42'
+    if (url.href === 'file:///baz.js') return 'module.exports = 42'
+
+    return null
+  }
+
+  function resolveModule(url) {
+    return url.href === 'file:///bar.js' ? new URL('file:///baz.js') : url
+  }
+
+  const bundle = await pack(new URL('file:///foo.js'), readModule, null, resolveModule)
+
+  t.alike([...bundle.keys()].sort(), ['file:///baz.js', 'file:///foo.js'])
 })
