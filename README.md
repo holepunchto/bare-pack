@@ -64,6 +64,7 @@ const bundle = await pack(
   { offload: true, base: new URL('file:///app/') },
   readModule,
   null,
+  null,
   writeFile
 )
 ```
