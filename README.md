@@ -64,11 +64,16 @@ const bundle = await pack(
   { offload: true, base: new URL('file:///app/') },
   readModule,
   null,
+  null,
   writeFile
 )
 ```
 
 URLs with the `builtin:`, `linked:`, or `deferred:` protocol are never offloaded.
+
+## Symlinks
+
+Modules are resolved from the `URL`s they are read at, so a package installed through a symlink, as pnpm does, has its dependencies looked up next to the link rather than where the package actually lives. To follow symlinks like the module systems of Bare and Node do, provide a `resolveModule` callback after `writeFile` that maps each resolved `URL` to its real path.
 
 ## CLI
 

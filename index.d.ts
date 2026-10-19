@@ -10,15 +10,19 @@ interface PackOptions extends TraverseOptions {
 }
 
 interface ReadModuleCallback {
-  (url: URL): Buffer | string | null
+  (url: URL): Buffer | string | null | Promise<Buffer | string | null>
 }
 
 interface ListPrefixCallback {
-  (url: URL): Iterable<URL>
+  (url: URL): Iterable<URL> | AsyncIterable<URL>
+}
+
+interface ResolveModuleCallback {
+  (url: URL): URL | Promise<URL>
 }
 
 interface WriteFileCallback {
-  (url: URL, source: Buffer | string): string | null | void
+  (url: URL, source: Buffer | string): string | null | void | Promise<string | null | void>
 }
 
 /**
@@ -40,6 +44,9 @@ interface WriteFileCallback {
  * as a `Buffer` or string, or `null` if it does not exist.
  * @param listPrefix - Called with a `URL` for every prefix to list; yields the `URL`s that have it
  * as a prefix. Pass `null` (or omit) to skip prefix bundling.
+ * @param resolveModule - Called with the `URL` of each resolved module; returns the `URL` to use in
+ * its place, such as its real path. Defaults to the identity function. See the [Symlinks section of
+ * the README](https://github.com/holepunchto/bare-pack#symlinks).
  * @param writeFile - Called for each addon or asset to offload rather than embed, receiving the
  * file `URL` and its source. See the [Offloading section of the
  * README](https://github.com/holepunchto/bare-pack#offloading).
@@ -52,6 +59,7 @@ declare function pack(
   opts: PackOptions,
   readModule: ReadModuleCallback,
   listPrefix: ListPrefixCallback | null,
+  resolveModule: ResolveModuleCallback | null,
   writeFile: WriteFileCallback
 ): Promise<Bundle>
 
@@ -59,20 +67,23 @@ declare function pack(
   entry: URL,
   opts: PackOptions,
   readModule: ReadModuleCallback,
-  listPrefix?: ListPrefixCallback
+  listPrefix?: ListPrefixCallback,
+  resolveModule?: ResolveModuleCallback
 ): Promise<Bundle>
 
 declare function pack(
   entry: URL,
   readModule: ReadModuleCallback,
   listPrefix: ListPrefixCallback | null,
+  resolveModule: ResolveModuleCallback | null,
   writeFile: WriteFileCallback
 ): Promise<Bundle>
 
 declare function pack(
   entry: URL,
   readModule: ReadModuleCallback,
-  listPrefix?: ListPrefixCallback
+  listPrefix?: ListPrefixCallback,
+  resolveModule?: ResolveModuleCallback
 ): Promise<Bundle>
 
 declare namespace pack {
@@ -80,6 +91,7 @@ declare namespace pack {
     type PackOptions,
     type ReadModuleCallback,
     type ListPrefixCallback,
+    type ResolveModuleCallback,
     type WriteFileCallback
   }
 }
