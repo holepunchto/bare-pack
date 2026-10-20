@@ -48,7 +48,7 @@ module.exports = async function pack(
 
   const addons = new Set()
   const assets = new Set()
-  const dependencies = []
+  const dependencies = new Map()
   const deferred = []
 
   await collect(
@@ -61,11 +61,11 @@ module.exports = async function pack(
 
   const rewrites = new Map()
 
-  await Promise.all(dependencies.map(process))
+  await Promise.all(Array.from(dependencies.values(), process))
 
   const main = traverse.alias(entry, opts)
 
-  for (const { url, source, imports } of dependencies) {
+  for (const { url, source, imports } of dependencies.values()) {
     if (shouldOffload(url.href)) continue
 
     bundle.write(url.href, source, {
@@ -191,7 +191,11 @@ module.exports = async function pack(
 
         next = generator.next()
       } else {
-        dependencies.push(value.dependency)
+        const { href } = value.dependency.url
+
+        // A graph is walked again for each addon context it is imported under,
+        // and the bundle keeps the first walk.
+        if (!dependencies.has(href)) dependencies.set(href, value.dependency)
 
         next = generator.next()
       }
