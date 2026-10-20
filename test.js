@@ -814,3 +814,167 @@ test('resolveModule, without options', async (t) => {
 
   t.alike([...bundle.keys()].sort(), ['file:///baz.js', 'file:///foo.js'])
 })
+
+test('wasi attribute', async (t) => {
+  const modules = {
+    'file:///foo.js': "require('bar', { with: { wasi: './caps.js' } })",
+    'file:///caps.js': 'module.exports = () => ({})',
+    'file:///node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///node_modules/bar/index.js': "module.exports = require.addon('.')",
+    'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm': '<webassembly>'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { resolve: traverse.resolve.bare, host },
+    readModule
+  )
+
+  const expected = new Bundle()
+    .write('file:///foo.js', "require('bar', { with: { wasi: './caps.js' } })", {
+      main: true,
+      imports: {
+        './caps.js': 'file:///caps.js',
+        bar: 'file:///node_modules/bar/index.js'
+      }
+    })
+    .write('file:///caps.js', 'module.exports = () => ({})', {
+      imports: {}
+    })
+    .write('file:///node_modules/bar/index.js', "module.exports = require.addon('.')", {
+      imports: {
+        '#package': 'file:///node_modules/bar/package.json',
+        '.': { addon: 'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm' }
+      }
+    })
+    .write('file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm', '<webassembly>', {
+      addon: true,
+      imports: {
+        '#package': 'file:///node_modules/bar/package.json'
+      }
+    })
+    .write('file:///node_modules/bar/package.json', '{ "name": "bar" }', {
+      imports: {}
+    })
+
+  t.alike(bundle, expected)
+})
+
+test('wasi attribute, transitive dependency', async (t) => {
+  const modules = {
+    'file:///foo.js': "require('baz', { with: { wasi: './caps.js' } })",
+    'file:///caps.js': 'module.exports = () => ({})',
+    'file:///node_modules/baz/package.json': '{ "name": "baz" }',
+    'file:///node_modules/baz/index.js': "module.exports = require('bar')",
+    'file:///node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///node_modules/bar/index.js': "module.exports = require.addon('.')",
+    'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm': '<webassembly>'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { resolve: traverse.resolve.bare, host },
+    readModule
+  )
+
+  t.alike([...bundle.keys()].sort(), [
+    'file:///caps.js',
+    'file:///foo.js',
+    'file:///node_modules/bar/index.js',
+    'file:///node_modules/bar/package.json',
+    'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm',
+    'file:///node_modules/baz/index.js',
+    'file:///node_modules/baz/package.json'
+  ])
+  t.alike(bundle.addons, ['file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm'])
+})
+
+test('wasi attribute, host attribute', async (t) => {
+  const modules = {
+    'file:///foo.js': "require('bar', { with: { host: 'wasi-wasm32', wasi: './caps.js' } })",
+    'file:///caps.js': 'module.exports = () => ({})',
+    'file:///node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///node_modules/bar/index.js': "module.exports = require.addon('.')",
+    'file:///node_modules/bar/prebuilds/host/bar.bare': '<native code>',
+    'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm': '<webassembly>'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { resolve: traverse.resolve.bare, hosts: [host] },
+    readModule
+  )
+
+  t.alike(bundle.resolutions['file:///node_modules/bar/index.js']['.'], {
+    addon: 'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm'
+  })
+  t.alike(bundle.addons, ['file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm'])
+})
+
+test('wasi attribute, conflicting provider', async (t) => {
+  const modules = {
+    'file:///foo.js':
+      "require('bar', { with: { wasi: './a.js' } }); require('bar', { with: { wasi: './b.js' } })",
+    'file:///a.js': 'module.exports = () => ({})',
+    'file:///b.js': 'module.exports = () => ({})',
+    'file:///node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///node_modules/bar/index.js': "module.exports = require.addon('.')",
+    'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm': '<webassembly>'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  await t.exception(
+    pack(new URL('file:///foo.js'), { resolve: traverse.resolve.bare, host }, readModule),
+    /ADDON_WASI_INCOMPATIBLE/
+  )
+})
+
+test('offload, module imported in several addon contexts', async (t) => {
+  const modules = {
+    'file:///foo.js': "require('bar', { with: { wasi: './caps.js' } }); require('bar')",
+    'file:///caps.js': 'module.exports = () => ({})',
+    'file:///node_modules/bar/package.json': '{ "name": "bar" }',
+    'file:///node_modules/bar/index.js': "module.exports = require.addon('.')",
+    'file:///node_modules/bar/prebuilds/host/bar.bare': '<native code>'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  const written = []
+
+  function writeFile(url, source) {
+    written.push({ url: url.href, source })
+  }
+
+  const bundle = await pack(
+    new URL('file:///foo.js'),
+    { resolve: traverse.resolve.bare, host, offload: true },
+    readModule,
+    null,
+    null,
+    writeFile
+  )
+
+  t.alike(written, [
+    { url: 'file:///node_modules/bar/prebuilds/host/bar.bare', source: '<native code>' }
+  ])
+
+  t.alike(bundle.addons, ['file:///node_modules/bar/prebuilds/host/bar.bare'])
+})

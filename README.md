@@ -113,6 +113,20 @@ The `--host` flag may be specified multiple times to create a combined bundle fo
 > [!TIP]
 > Most often you'll use one of the possible values of [`Bare.Addon.host`](https://github.com/holepunchto/bare#addonhost). Omitting the architecture and environment is also valid; `--host ios` will create a bundle for iOS with no architecture specific code, for example, whereas `--host ios-arm64-simulator` will create a bundle specifically for iOS ARM64 simulators.
 
+##### WebAssembly
+
+WebAssembly prebuilds, found at `prebuilds/wasi-wasm32/<name>.wasm`, are only bundled when `wasi-wasm32` is one of the hosts. Unlike Bare, `bare-pack` doesn't fall back to them on its own, and the same applies to the `hosts` option and presets. Only the first matching host is bundled for each addon, so list `wasi-wasm32` after the native host to fall back to WebAssembly prebuilds where no native prebuild exists:
+
+```console
+bare-pack --host darwin-arm64 --host wasi-wasm32 index.js
+```
+
+Imports with the `host: 'wasi-wasm32'` attribute always resolve to WebAssembly prebuilds, whatever the hosts are:
+
+```js
+const jpeg = require('bare-jpeg', { with: { host: 'wasi-wasm32', wasi: './wasi.js' } })
+```
+
 ##### Linking
 
 If your runtime environment dynamically links native addons ahead of time using <https://github.com/holepunchto/bare-link>, pass the `--linked` flag to ensure that addons resolve to `linked:` specifiers instead of `file:` prebuilds. This will mostly always be necessary when targeting mobile as both iOS and Android require native code to be linked ahead of time rather than loaded at runtime from disk.
