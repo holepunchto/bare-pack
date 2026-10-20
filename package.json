@@ -8,7 +8,10 @@
       "types": "./index.d.ts",
       "default": "./index.js"
     },
-    "./fs": "./lib/fs.js",
+    "./fs": {
+      "types": "./lib/fs.d.ts",
+      "default": "./lib/fs.js"
+    },
     "./preset": "./lib/preset.js",
     "./preset/*": "./lib/preset/*.js"
   },
