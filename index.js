@@ -3,6 +3,16 @@ const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
 const preset = require('./lib/preset')
 
+const typeAttributes = {
+  [traverse.constants.SCRIPT]: 'script',
+  [traverse.constants.MODULE]: 'module',
+  [traverse.constants.JSON]: 'json',
+  [traverse.constants.BUNDLE]: 'bundle',
+  [traverse.constants.ADDON]: 'addon',
+  [traverse.constants.BINARY]: 'binary',
+  [traverse.constants.TEXT]: 'text'
+}
+
 module.exports = async function pack(
   entry,
   opts,
@@ -65,12 +75,16 @@ module.exports = async function pack(
 
   const main = traverse.alias(entry, opts)
 
-  for (const { url, source, imports } of dependencies.values()) {
+  for (const { url, source, imports, type } of dependencies.values()) {
     if (shouldOffload(url.href)) continue
 
+    // A file that is also an asset may have been reached as an asset first, in
+    // which case its type follows its extension rather than how it is imported.
+    // Leave it out and let the loader infer it.
     bundle.write(url.href, source, {
       main: url.href === main.href,
-      imports
+      imports,
+      type: assets.has(url.href) ? null : typeAttributes[type] || null
     })
   }
 
