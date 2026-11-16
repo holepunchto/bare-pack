@@ -26,17 +26,20 @@ test('require', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require('./bar.js')", {
+      type: 'script',
       main: true,
       imports: {
         './bar.js': 'file:///bar.js'
       }
     })
     .write('file:///bar.js', "const baz = require('./baz.js')", {
+      type: 'script',
       imports: {
         './baz.js': 'file:///baz.js'
       }
     })
     .write('file:///baz.js', 'module.exports = 42', {
+      type: 'script',
       imports: {}
     })
 
@@ -64,6 +67,7 @@ test('require.addon', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': 'file:///package.json',
@@ -71,12 +75,14 @@ test('require.addon', async (t) => {
       }
     })
     .write('file:///prebuilds/host/foo.bare', '<native code>', {
+      type: 'addon',
       addon: true,
       imports: {
         '#package': 'file:///package.json'
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -112,6 +118,7 @@ test('require.addon, hosts list', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "module.exports = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': 'file:///package.json',
@@ -124,18 +131,21 @@ test('require.addon, hosts list', async (t) => {
       }
     })
     .write('file:///prebuilds/host-a/foo.bare', '<native code a>', {
+      type: 'addon',
       addon: true,
       imports: {
         '#package': 'file:///package.json'
       }
     })
     .write('file:///prebuilds/host-b/foo.bare', '<native code b>', {
+      type: 'addon',
       addon: true,
       imports: {
         '#package': 'file:///package.json'
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -159,6 +169,7 @@ test('require.asset', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
+      type: 'script',
       main: true,
       imports: {
         './bar.txt': { asset: 'file:///bar.txt' }
@@ -201,6 +212,7 @@ test('require.asset, directory', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.asset('./bar')", {
+      type: 'script',
       main: true,
       imports: {
         './bar': { asset: 'file:///bar' }
@@ -235,12 +247,14 @@ test('aliases, .ts to .js', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require('./bar.ts')", {
+      type: 'script',
       main: true,
       imports: {
         './bar.ts': 'file:///bar.js'
       }
     })
     .write('file:///bar.js', 'module.exports = 42', {
+      type: 'script',
       imports: {}
     })
 
@@ -264,12 +278,14 @@ test('aliases, .mts to .mjs', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.mjs', "import './bar.mts'", {
+      type: 'module',
       main: true,
       imports: {
         './bar.mts': 'file:///bar.mjs'
       }
     })
     .write('file:///bar.mjs', 'export default 42', {
+      type: 'module',
       imports: {}
     })
 
@@ -300,12 +316,14 @@ test('aliases, .ts to .js with defaultType MODULE', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "import './bar.ts'", {
+      type: 'module',
       main: true,
       imports: {
         './bar.ts': 'file:///bar.js'
       }
     })
     .write('file:///bar.js', 'export default 42', {
+      type: 'module',
       imports: {}
     })
 
@@ -348,6 +366,7 @@ test('offload addons', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': 'file:///package.json',
@@ -355,6 +374,7 @@ test('offload addons', async (t) => {
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -394,6 +414,7 @@ test('offload assets', async (t) => {
   t.alike(written, [{ url: 'file:///bar.txt', source: 'hello world' }])
 
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
+    type: 'script',
     main: true,
     imports: {
       './bar.txt': { asset: 'file:///bar.txt' }
@@ -439,6 +460,7 @@ test('offload assets, imported as both module and asset', async (t) => {
     'file:///foo.js',
     "require('./bar.txt'), require.asset('./bar.txt')",
     {
+      type: 'script',
       main: true,
       imports: {
         './bar.txt': { require: 'file:///bar.txt', asset: 'file:///bar.txt' }
@@ -478,6 +500,7 @@ test('offload, writeFile override', async (t) => {
   )
 
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar.txt')", {
+    type: 'script',
     main: true,
     imports: {
       './bar.txt': { asset: 'linked:bar.txt' }
@@ -524,6 +547,7 @@ test('offload with base', async (t) => {
 
   const expected = new Bundle()
     .write('/foo.js', "const bar = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': '/package.json',
@@ -531,6 +555,7 @@ test('offload with base', async (t) => {
       }
     })
     .write('/package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -574,6 +599,7 @@ test('offload with base, root', async (t) => {
 
   const expected = new Bundle()
     .write('/foo.js', "const bar = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': '/package.json',
@@ -581,6 +607,7 @@ test('offload with base, root', async (t) => {
       }
     })
     .write('/package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -628,6 +655,7 @@ test('offload assets, directory', async (t) => {
   )
 
   const expected = new Bundle().write('file:///foo.js', "const bar = require.asset('./bar')", {
+    type: 'script',
     main: true,
     imports: {
       './bar': { asset: '/bar' }
@@ -667,6 +695,7 @@ test('offload, linked addons not offloaded', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require.addon('.')", {
+      type: 'script',
       main: true,
       imports: {
         '#package': 'file:///package.json',
@@ -674,6 +703,7 @@ test('offload, linked addons not offloaded', async (t) => {
       }
     })
     .write('file:///package.json', '{ "name": "foo" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -703,17 +733,20 @@ test('serial', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "const bar = require('./bar.js')", {
+      type: 'script',
       main: true,
       imports: {
         './bar.js': 'file:///bar.js'
       }
     })
     .write('file:///bar.js', "const baz = require('./baz.js')", {
+      type: 'script',
       imports: {
         './baz.js': 'file:///baz.js'
       }
     })
     .write('file:///baz.js', 'module.exports = 42', {
+      type: 'script',
       imports: {}
     })
 
@@ -741,6 +774,7 @@ test('serial, module imported as both asset and module', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "require.asset('./bar.js'), require('./bar.js')", {
+      type: 'script',
       main: true,
       imports: {
         './bar.js': { require: 'file:///bar.js', asset: 'file:///bar.js' }
@@ -753,6 +787,7 @@ test('serial, module imported as both asset and module', async (t) => {
       }
     })
     .write('file:///baz.js', 'module.exports = 42', {
+      type: 'script',
       imports: {}
     })
 
@@ -836,6 +871,7 @@ test('wasi attribute', async (t) => {
 
   const expected = new Bundle()
     .write('file:///foo.js', "require('bar', { with: { wasi: './caps.js' } })", {
+      type: 'script',
       main: true,
       imports: {
         './caps.js': 'file:///caps.js',
@@ -843,21 +879,25 @@ test('wasi attribute', async (t) => {
       }
     })
     .write('file:///caps.js', 'module.exports = () => ({})', {
+      type: 'script',
       imports: {}
     })
     .write('file:///node_modules/bar/index.js', "module.exports = require.addon('.')", {
+      type: 'script',
       imports: {
         '#package': 'file:///node_modules/bar/package.json',
         '.': { addon: 'file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm' }
       }
     })
     .write('file:///node_modules/bar/prebuilds/wasi-wasm32/bar.wasm', '<webassembly>', {
+      type: 'addon',
       addon: true,
       imports: {
         '#package': 'file:///node_modules/bar/package.json'
       }
     })
     .write('file:///node_modules/bar/package.json', '{ "name": "bar" }', {
+      type: 'json',
       imports: {}
     })
 
@@ -977,4 +1017,25 @@ test('offload, module imported in several addon contexts', async (t) => {
   ])
 
   t.alike(bundle.addons, ['file:///node_modules/bar/prebuilds/host/bar.bare'])
+})
+
+test('types', async (t) => {
+  const modules = {
+    'file:///foo.js':
+      "require('./bar.mjs'), require('./baz.txt', { with: { type: 'text' } }), require.asset('./qux.js'), require('./qux.js')",
+    'file:///bar.mjs': 'export default 42',
+    'file:///baz.txt': 'hello world',
+    'file:///qux.js': 'module.exports = 42'
+  }
+
+  function readModule(url) {
+    return modules[url.href] ?? null
+  }
+
+  const bundle = await pack(new URL('file:///foo.js'), readModule)
+
+  t.is(bundle.type('file:///foo.js'), 'script')
+  t.is(bundle.type('file:///bar.mjs'), 'module')
+  t.is(bundle.type('file:///baz.txt'), 'text')
+  t.is(bundle.type('file:///qux.js'), null, 'an asset is left to be inferred')
 })
