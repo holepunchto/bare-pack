@@ -1,6 +1,6 @@
-const Semaphore = require('promaphore')
 const Bundle = require('bare-bundle')
 const traverse = require('bare-module-traverse')
+const Semaphore = require('./lib/semaphore')
 const preset = require('./lib/preset')
 
 const typeAttributes = {
